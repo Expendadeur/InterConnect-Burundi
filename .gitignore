@@ -1,0 +1,100 @@
+# ==========================================
+# InterConnect Burundi — .gitignore
+# ==========================================
+
+# Environment files — NEVER commit secrets
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# ---- Node / NestJS ----
+node_modules/
+dist/
+build/
+.npm
+
+# ---- Python / AI Services ----
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+.venv/
+env/
+*.egg-info/
+*.egg
+.eggs/
+dist/
+*.whl
+
+# ---- Flutter / Dart ----
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+build/
+*.iml
+.pub-cache/
+.pub/
+
+# ---- Docker ----
+.docker/
+
+# ---- IDE / Editors ----
+.idea/
+.vscode/
+*.swp
+*.swo
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ---- Logs ----
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ---- OS ----
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ---- Certificates & Keys ----
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# ---- Coverage / Test artifacts ----
+coverage/
+.nyc_output/
+*.lcov
+htmlcov/
+.pytest_cache/
+
+# ---- Temporary files ----
+tmp/
+temp/
+
+# ---- Android secrets ----
+mobile/android/app/google-services.json
+mobile/android/key.properties
+*.jks
+*.keystore
+
+# ---- Flutter dep files ----
+mobile/**/*.d
+mobile/android/.gradle/
+mobile/android/local.properties
+mobile/.metadata
+
+# ---- AI Models cache ----
+ai-services/models/
+ai-services/**/*.bin
+ai-services/**/*.pt

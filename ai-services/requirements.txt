@@ -1,0 +1,23 @@
+# InterConnect Burundi - Unified AI Services Requirements
+fastapi>=0.111.0
+uvicorn[standard]>=0.30.0
+pydantic>=2.7.0
+pydantic-settings>=2.2.0
+python-dotenv>=1.0.1
+python-multipart>=0.0.9
+structlog>=24.2.0
+loguru>=0.7.2
+httpx>=0.27.0
+
+# Traduction
+google-cloud-translate>=3.15.0
+deepl>=1.18.0
+
+# Speech-to-Text & Text-to-Speech
+gTTS>=2.5.1
+google-cloud-texttospeech>=2.16.0
+google-cloud-speech>=2.26.0
+
+# Cache
+redis>=5.0.6
+
