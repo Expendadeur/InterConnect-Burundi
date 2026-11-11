@@ -78,7 +78,8 @@ async function bootstrap() {
     });
   }
 
-  await app.listen(port);
+  const port = process.env.PORT || configService.get<number>('port') || 3000;
+  await app.listen(port, '0.0.0.0');
   app.get(WINSTON_MODULE_NEST_PROVIDER).log(
     `🚀 InterConnect Burundi Backend running on port ${port} [${nodeEnv}]`,
     'Bootstrap',

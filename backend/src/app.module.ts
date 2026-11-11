@@ -73,11 +73,15 @@ import { HealthController } from './health.controller';
     // ─── Database (TypeORM + PostgreSQL via Supabase) ─────────────────────────
     TypeOrmModule.forRootAsync({
       useFactory: (configService: ConfigService) => {
-        const dbUrl = process.env.DATABASE_URL;
+        let dbUrl = process.env.DATABASE_URL;
+
         if (dbUrl) {
+          // Si DATABASE_URL contient sslmode, on le nettoie pour laisser l'objet ssl contrôler pg
+          const cleanUrl = dbUrl.replace(/[?&]sslmode=[^&]*/, '');
+
           return {
             type: 'postgres',
-            url: dbUrl,
+            url: cleanUrl,
             entities: [
               User,
               Post,
@@ -90,9 +94,14 @@ import { HealthController } from './health.controller';
               Notification,
             ],
             synchronize: true,
-            ssl: { rejectUnauthorized: false },
+            ssl: {
+              rejectUnauthorized: false,
+            },
             extra: {
-              connectionTimeoutMillis: 10000,
+              ssl: {
+                rejectUnauthorized: false,
+              },
+              connectionTimeoutMillis: 15000,
               idleTimeoutMillis: 30000,
               max: 20,
             },
@@ -119,11 +128,14 @@ import { HealthController } from './health.controller';
           ],
           synchronize: true,
           logging: configService.get<string>('nodeEnv') === 'development',
-          ssl: configService.get<boolean>('database.ssl')
-            ? { rejectUnauthorized: false }
-            : false,
+          ssl: {
+            rejectUnauthorized: false,
+          },
           extra: {
-            connectionTimeoutMillis: 10000,
+            ssl: {
+              rejectUnauthorized: false,
+            },
+            connectionTimeoutMillis: 15000,
             idleTimeoutMillis: 30000,
             max: 20,
           },
