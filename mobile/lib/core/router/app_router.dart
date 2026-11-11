@@ -9,6 +9,10 @@ import '../../features/messaging/presentation/screens/chat_screen.dart';
 import '../../features/calls/presentation/screens/call_screen.dart';
 import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/community/presentation/screens/community_screen.dart';
+import '../../features/marketplace/presentation/screens/marketplace_screen.dart';
+import '../../features/wallet/presentation/screens/wallet_screen.dart';
+import '../../features/notifications/presentation/screens/notifications_screen.dart';
+import '../../features/settings/presentation/screens/settings_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -29,6 +33,22 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/feed',
         builder: (context, state) => const FeedScreen(),
+      ),
+      GoRoute(
+        path: '/marketplace',
+        builder: (context, state) => const MarketplaceScreen(),
+      ),
+      GoRoute(
+        path: '/wallet',
+        builder: (context, state) => const WalletScreen(),
+      ),
+      GoRoute(
+        path: '/notifications',
+        builder: (context, state) => const NotificationsScreen(),
+      ),
+      GoRoute(
+        path: '/settings',
+        builder: (context, state) => const SettingsScreen(),
       ),
       // Nouvel écran Communauté Mondiale — tous les inscrits visibles
       GoRoute(

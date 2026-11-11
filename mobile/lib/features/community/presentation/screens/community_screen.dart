@@ -31,6 +31,10 @@ class CommunityScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go('/feed'),
+        ),
         title: const Row(
           children: [
             Text('🌍 ', style: TextStyle(fontSize: 22)),

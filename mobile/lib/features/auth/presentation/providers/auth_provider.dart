@@ -42,7 +42,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
 
     try {
-      final res = await _apiClient.dio.get('/users/profile/me');
+      final res = await _apiClient.dio.get('/users/me');
       final user = UserModel.fromJson(res.data);
       state = AuthState.authenticated(user);
 
@@ -57,7 +57,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     try {
       final fcmToken = await FCMService.getToken();
       if (fcmToken != null) {
-        await _apiClient.dio.patch('/users/profile/me', data: {
+        await _apiClient.dio.patch('/users/me', data: {
           'fcmToken': fcmToken,
         });
       }
@@ -95,6 +95,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
     String? preferredLanguage,
     String? avatarUrl,
     String? bio,
+    String? phone,
+    String? nationalId,
+    String? country,
   }) async {
     state = AuthState.loading();
     try {
@@ -107,6 +110,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
         if (preferredLanguage != null) 'preferredLanguage': preferredLanguage,
         if (avatarUrl != null && avatarUrl.isNotEmpty) 'avatarUrl': avatarUrl,
         if (bio != null && bio.isNotEmpty) 'bio': bio,
+        if (phone != null && phone.isNotEmpty) 'phone': phone,
+        if (nationalId != null && nationalId.isNotEmpty) 'nationalId': nationalId,
+        if (country != null && country.isNotEmpty) 'country': country,
       });
 
       await _storage.write(key: 'jwt_access_token', value: res.data['accessToken']);
@@ -119,16 +125,24 @@ class AuthNotifier extends StateNotifier<AuthState> {
       return true;
     } catch (e) {
       String errorMsg = "Échec de l'inscription.";
-      if (e is DioException && e.response?.data != null) {
-        final data = e.response!.data;
-        if (data is Map && data['message'] != null) {
-          final msg = data['message'];
-          if (msg is List) {
-            errorMsg = msg.join('\n');
+      if (e is DioException) {
+        if (e.response?.data != null) {
+          final data = e.response!.data;
+          if (data is Map && data['message'] != null) {
+            final msg = data['message'];
+            errorMsg = msg is List ? msg.join('\n') : msg.toString();
           } else {
-            errorMsg = msg.toString();
+            errorMsg = "Erreur serveur (${e.response?.statusCode}): ${e.response?.statusMessage}";
           }
+        } else if (e.type == DioExceptionType.connectionTimeout ||
+                   e.type == DioExceptionType.receiveTimeout ||
+                   e.type == DioExceptionType.connectionError) {
+          errorMsg = "Impossible de contacter le serveur Render. Vérifiez votre connexion Internet ou réveillez le serveur.";
+        } else {
+          errorMsg = "Erreur réseau: ${e.message}";
         }
+      } else {
+        errorMsg = "Erreur: $e";
       }
       state = AuthState.unauthenticated(errorMsg);
       return false;

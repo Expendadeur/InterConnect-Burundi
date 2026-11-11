@@ -110,6 +110,22 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                             .read(postsProvider.notifier)
                             .createPost(text, _selectedLanguage);
                         _postController.clear();
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Row(
+                                children: const [
+                                  Icon(Icons.check_circle, color: Colors.white),
+                                  SizedBox(width: 10),
+                                  Text('Publication partagée avec succès !'),
+                                ],
+                              ),
+                              backgroundColor: AppColors.success,
+                              behavior: SnackBarBehavior.floating,
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        }
                       }
                     },
                   ),
@@ -141,9 +157,19 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
         ),
         actions: [
           IconButton(
+            icon: const Icon(Icons.storefront_outlined, color: AppColors.primary),
+            tooltip: 'Marché Mondial',
+            onPressed: () => context.go('/marketplace'),
+          ),
+          IconButton(
             icon: const Icon(Icons.people_alt_outlined, color: AppColors.primary),
             tooltip: 'Communauté mondiale',
             onPressed: () => context.go('/community'),
+          ),
+          IconButton(
+            icon: const Icon(Icons.notifications_none_outlined, color: AppColors.primary),
+            tooltip: 'Notifications',
+            onPressed: () => context.go('/notifications'),
           ),
           IconButton(
             icon: const Icon(Icons.chat_outlined, color: AppColors.primary),

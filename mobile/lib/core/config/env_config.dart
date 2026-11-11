@@ -2,7 +2,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../utils/logger.dart';
 
 class EnvConfig {
-  static const String _defaultApiBaseUrl = 'https://full-shoes-boil.loca.lt';
+  static const String _defaultApiBaseUrl = 'https://interconnect-burundi.onrender.com';
   static const String _defaultWsUrl = 'wss://full-shoes-boil.loca.lt';
   static const String _defaultLivekitUrl = 'wss://interconnect-burundi-c8nah4fz.livekit.cloud';
   static const String _defaultSupabaseUrl = 'https://sdzzzikdophekbzuzdwx.supabase.co';

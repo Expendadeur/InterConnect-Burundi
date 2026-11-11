@@ -20,6 +20,18 @@ class ProfileScreen extends ConsumerWidget {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/feed'),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.account_balance_wallet_outlined, color: AppColors.success),
+            tooltip: 'Portefeuille & Gains',
+            onPressed: () => context.go('/wallet'),
+          ),
+          IconButton(
+            icon: const Icon(Icons.settings_outlined, color: AppColors.primary),
+            tooltip: 'Paramètres',
+            onPressed: () => context.go('/settings'),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -31,12 +43,17 @@ class ProfileScreen extends ConsumerWidget {
                   CircleAvatar(
                     radius: 50,
                     backgroundColor: AppColors.primary,
-                    child: Text(
-                      user?.displayName.isNotEmpty == true
-                          ? user!.displayName[0].toUpperCase()
-                          : 'U',
-                      style: const TextStyle(fontSize: 36, color: Colors.white, fontWeight: FontWeight.bold),
-                    ),
+                    backgroundImage: user?.avatarUrl != null && user!.avatarUrl!.isNotEmpty
+                        ? NetworkImage(user.avatarUrl!)
+                        : null,
+                    child: (user?.avatarUrl == null || user!.avatarUrl!.isEmpty)
+                        ? Text(
+                            user?.displayName.isNotEmpty == true
+                                ? user!.displayName[0].toUpperCase()
+                                : 'U',
+                            style: const TextStyle(fontSize: 36, color: Colors.white, fontWeight: FontWeight.bold),
+                          )
+                        : null,
                   ),
                   Positioned(
                     bottom: 0,
@@ -74,6 +91,30 @@ class ProfileScreen extends ConsumerWidget {
                       leading: const Icon(Icons.email_outlined, color: AppColors.primary),
                       title: const Text('Email'),
                       subtitle: Text(user?.email ?? 'Non renseigné'),
+                    ),
+                    const Divider(),
+                    ListTile(
+                      leading: const Icon(Icons.phone_outlined, color: AppColors.primary),
+                      title: const Text('Téléphone'),
+                      subtitle: Text(user?.phone ?? 'Non renseigné'),
+                    ),
+                    const Divider(),
+                    ListTile(
+                      leading: const Icon(Icons.badge_outlined, color: AppColors.primary),
+                      title: const Text('N° Carte d’Identité (CNI)'),
+                      subtitle: Text(user?.nationalId ?? 'Non renseigné'),
+                    ),
+                    const Divider(),
+                    ListTile(
+                      leading: const Icon(Icons.public, color: AppColors.success),
+                      title: const Text('Pays'),
+                      subtitle: Text(user?.country ?? 'Burundi'),
+                    ),
+                    const Divider(),
+                    ListTile(
+                      leading: const Icon(Icons.info_outline, color: AppColors.primary),
+                      title: const Text('Bio'),
+                      subtitle: Text(user?.bio ?? 'Aucune bio'),
                     ),
                     const Divider(),
                     ListTile(

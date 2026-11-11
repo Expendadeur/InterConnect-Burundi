@@ -66,53 +66,10 @@ class CommunityNotifier extends StateNotifier<CommunityState> {
         selectedLanguageFilter: state.selectedLanguageFilter,
       );
     } catch (e) {
-      // Fallback avec membres d'exemple si le backend démarre ou est vide
-      final fallbackUsers = [
-        const UserModel(
-          id: 'user-1',
-          email: 'esperance@burundi.bi',
-          username: 'esperance_bi',
-          firstName: 'Espérance',
-          lastName: 'Kaneza',
-          preferredLanguage: 'rn',
-          bio: 'Journaliste et traductrice culturelle • Bujumbura, Burundi 🇧🇮',
-          avatarUrl: 'https://api.dicebear.com/7.x/bottts/png?seed=Burundi1',
-        ),
-        const UserModel(
-          id: 'user-2',
-          email: 'jean.dupont@paris.fr',
-          username: 'jean_dupont',
-          firstName: 'Jean',
-          lastName: 'Dupont',
-          preferredLanguage: 'fr',
-          bio: 'Passionné de cultures africaines • Paris, France 🇫🇷',
-          avatarUrl: 'https://api.dicebear.com/7.x/bottts/png?seed=Burundi2',
-        ),
-        const UserModel(
-          id: 'user-3',
-          email: 'sarah.smith@london.uk',
-          username: 'sarah_uk',
-          firstName: 'Sarah',
-          lastName: 'Smith',
-          preferredLanguage: 'en',
-          bio: 'Humanitarian researcher • London, UK 🇬🇧',
-          avatarUrl: 'https://api.dicebear.com/7.x/bottts/png?seed=Burundi3',
-        ),
-        const UserModel(
-          id: 'user-4',
-          email: 'juma.tanzania@dar.tz',
-          username: 'juma_tz',
-          firstName: 'Juma',
-          lastName: 'Mwamburi',
-          preferredLanguage: 'sw',
-          bio: 'Mfanyabiashara na mdau wa teknolojia • Dar es Salaam 🇹🇿',
-          avatarUrl: 'https://api.dicebear.com/7.x/bottts/png?seed=Burundi4',
-        ),
-      ];
-
       state = CommunityState(
-        users: fallbackUsers,
+        users: const [],
         isLoading: false,
+        error: "Impossible de charger les membres réels.",
         searchQuery: state.searchQuery,
         selectedLanguageFilter: state.selectedLanguageFilter,
       );

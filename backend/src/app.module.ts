@@ -13,6 +13,9 @@ import { MessagingModule } from './messaging/messaging.module';
 import { TranslationModule } from './translation/translation.module';
 import { CallsModule } from './calls/calls.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { WalletModule } from './wallet/wallet.module';
+import { Wallet } from './wallet/entities/wallet.entity';
+import { WalletTransaction } from './wallet/entities/wallet-transaction.entity';
 import { User } from './users/entities/user.entity';
 import { Post } from './posts/entities/post.entity';
 import { PostTranslation } from './posts/entities/post-translation.entity';
@@ -92,6 +95,8 @@ import { HealthController } from './health.controller';
               Message,
               Call,
               Notification,
+              Wallet,
+              WalletTransaction,
             ],
             synchronize: true,
             ssl: {
@@ -125,6 +130,8 @@ import { HealthController } from './health.controller';
             Message,
             Call,
             Notification,
+            Wallet,
+            WalletTransaction,
           ],
           synchronize: true,
           logging: configService.get<string>('nodeEnv') === 'development',
@@ -164,6 +171,7 @@ import { HealthController } from './health.controller';
     TranslationModule,
     CallsModule,
     NotificationsModule,
+    WalletModule,
   ],
   controllers: [HealthController],
 })

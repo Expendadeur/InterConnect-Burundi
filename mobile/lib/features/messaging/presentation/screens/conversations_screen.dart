@@ -49,17 +49,7 @@ final conversationsProvider = FutureProvider<List<ConversationItem>>((ref) async
     }).toList();
     return items;
   } catch (_) {
-    // Conversations d'exemple si le backend n'a pas encore de données
-    return [
-      ConversationItem(
-        id: 'general-room',
-        name: 'Groupe National Burundi 🇧🇮',
-        lastMessage: 'Muraho mwese! Bienvenue sur le salon.',
-        lastMessageLang: 'rn',
-        time: '10:45',
-        isGroup: true,
-      ),
-    ];
+    return const [];
   }
 });
 
@@ -80,7 +70,10 @@ class ConversationsScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        automaticallyImplyLeading: false,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.go('/feed'),
+        ),
         title: const Text('Messages', style: TextStyle(fontWeight: FontWeight.bold)),
         actions: [
           IconButton(

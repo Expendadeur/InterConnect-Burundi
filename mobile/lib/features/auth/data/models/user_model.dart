@@ -7,6 +7,9 @@ class UserModel {
   final String? avatarUrl;
   final String? bio;
   final String preferredLanguage;
+  final String? phone;
+  final String? nationalId;
+  final String? country;
 
   const UserModel({
     required this.id,
@@ -17,6 +20,9 @@ class UserModel {
     this.avatarUrl,
     this.bio,
     this.preferredLanguage = 'fr',
+    this.phone,
+    this.nationalId,
+    this.country,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -29,6 +35,9 @@ class UserModel {
       avatarUrl: json['avatarUrl'],
       bio: json['bio'],
       preferredLanguage: json['preferredLanguage'] ?? 'fr',
+      phone: json['phone'],
+      nationalId: json['nationalId'],
+      country: json['country'],
     );
   }
 
@@ -42,6 +51,9 @@ class UserModel {
       'avatarUrl': avatarUrl,
       'bio': bio,
       'preferredLanguage': preferredLanguage,
+      'phone': phone,
+      'nationalId': nationalId,
+      'country': country,
     };
   }
 

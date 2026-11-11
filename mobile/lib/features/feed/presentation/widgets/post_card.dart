@@ -72,45 +72,11 @@ class PostCard extends StatelessWidget {
             ),
             const SizedBox(height: 12),
 
-            // Si la traduction est prête → on affiche la traduction en PRIORITÉ (langue de l'utilisateur)
-            // avec le texte original en dessous en petit
+            // Si la traduction est prête → on affiche UNIQUEMENT la traduction (langue de l'utilisateur)
             if (post.translatedContent != null) ...[
               Text(
                 post.translatedContent!,
                 style: const TextStyle(fontSize: 15, height: 1.4),
-              ),
-              const SizedBox(height: 8),
-              GestureDetector(
-                onTap: () {},
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.grey.shade200),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.auto_awesome,
-                          size: 12, color: AppColors.primary),
-                      const SizedBox(width: 4),
-                      Flexible(
-                        child: Text(
-                          'Original (${post.originalLanguage.toUpperCase()}): ${post.content}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.textSecondary,
-                            fontStyle: FontStyle.italic,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
               ),
             ] else if (post.isTranslating) ...[
               // Indicateur discret pendant la traduction

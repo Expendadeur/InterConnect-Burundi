@@ -29,12 +29,12 @@ export class AuthService {
   async register(dto: RegisterDto): Promise<AuthTokens> {
     const existingEmail = await this.usersService.findByEmail(dto.email);
     if (existingEmail) {
-      throw new ConflictException('Email already in use');
+      throw new ConflictException('Cette adresse email est déjà utilisée. Veuillez vous connecter ou en choisir une autre.');
     }
 
     const existingUsername = await this.usersService.findByUsername(dto.username);
     if (existingUsername) {
-      throw new ConflictException('Username already taken');
+      throw new ConflictException('Ce nom d’utilisateur (@' + dto.username + ') est déjà pris. Veuillez en choisir un autre.');
     }
 
     const salt = await bcrypt.genSalt(10);
