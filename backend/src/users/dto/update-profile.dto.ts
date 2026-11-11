@@ -51,4 +51,22 @@ export class UpdateProfileDto {
   @IsOptional()
   @IsString()
   fcmToken?: string;
+
+  @ApiPropertyOptional({ example: '+25761234567' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  phone?: string;
+
+  @ApiPropertyOptional({ example: 'CNI-BI-123456789' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  nationalId?: string;
+
+  @ApiPropertyOptional({ example: 'Burundi' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  country?: string;
 }

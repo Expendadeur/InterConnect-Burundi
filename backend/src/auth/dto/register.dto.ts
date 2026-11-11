@@ -57,4 +57,22 @@ export class RegisterDto {
   @IsOptional()
   @IsString()
   bio?: string;
+
+  @ApiProperty({ example: '+25761234567', required: false })
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  phone?: string;
+
+  @ApiProperty({ example: 'CNI-BI-123456789', required: false })
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  nationalId?: string;
+
+  @ApiProperty({ example: 'Burundi', required: false })
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  country?: string;
 }

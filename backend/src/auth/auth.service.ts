@@ -49,6 +49,9 @@ export class AuthService {
       preferredLanguage: dto.preferredLanguage || 'rn',
       avatarUrl: dto.avatarUrl,
       bio: dto.bio,
+      phone: dto.phone,
+      nationalId: dto.nationalId,
+      country: dto.country,
     });
 
     const tokens = await this.generateTokens(user);

@@ -61,6 +61,18 @@ export class User {
   @Column({ type: 'text', nullable: true })
   bio: string;
 
+  @ApiProperty({ example: '+25761234567', required: false })
+  @Column({ nullable: true, length: 20 })
+  phone: string;
+
+  @ApiProperty({ example: 'CNI-BI-123456789', required: false })
+  @Column({ name: 'national_id', nullable: true, length: 50 })
+  nationalId: string;
+
+  @ApiProperty({ example: 'Burundi', required: false })
+  @Column({ nullable: true, length: 100 })
+  country: string;
+
   @ApiProperty({ enum: UserRole, example: UserRole.USER })
   @Column({ type: 'enum', enum: UserRole, default: UserRole.USER })
   role: UserRole;
