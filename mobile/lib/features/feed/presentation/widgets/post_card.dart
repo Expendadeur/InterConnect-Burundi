@@ -98,10 +98,29 @@ class PostCard extends StatelessWidget {
             ],
 
             const SizedBox(height: 12),
-            // Actions
+            // Actions & Compteur de Vues Monétisables
             Row(
-              mainAxisAlignment: MainAxisAlignment.end,
               children: [
+                // Compteur de vues (politique de monétisation)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.visibility_outlined, size: 14, color: AppColors.textSecondary),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${post.viewsCount} vues',
+                        style: const TextStyle(fontSize: 11, color: AppColors.textSecondary, fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
+                ),
+                const Spacer(),
                 IconButton(
                   icon: const Icon(Icons.favorite_border,
                       size: 20, color: AppColors.error),

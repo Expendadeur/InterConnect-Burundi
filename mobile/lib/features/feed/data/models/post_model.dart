@@ -7,6 +7,7 @@ class PostModel {
   final String originalLanguage;
   final List<String> mediaUrls;
   final int likesCount;
+  final int viewsCount;
   final int commentsCount;
   final DateTime createdAt;
   String? translatedContent;
@@ -21,6 +22,7 @@ class PostModel {
     required this.originalLanguage,
     this.mediaUrls = const [],
     this.likesCount = 0,
+    this.viewsCount = 0,
     this.commentsCount = 0,
     required this.createdAt,
     this.translatedContent,
@@ -44,6 +46,7 @@ class PostModel {
       originalLanguage: json['originalLanguage'] ?? 'fr',
       mediaUrls: (json['mediaUrls'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? [],
       likesCount: json['likesCount'] ?? 0,
+      viewsCount: json['viewsCount'] ?? 0,
       commentsCount: json['commentsCount'] ?? 0,
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'])

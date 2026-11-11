@@ -47,7 +47,15 @@ export class PostsController {
   @Get(':id')
   @ApiOperation({ summary: 'Récupérer une publication par son identifiant' })
   async findOne(@Param('id', ParseUUIDPipe) id: string) {
+    await this.postsService.recordView(id);
     return this.postsService.findById(id);
+  }
+
+  @Post(':id/view')
+  @ApiOperation({ summary: 'Enregistrer une vue sur une publication pour la monétisation' })
+  async recordView(@Param('id', ParseUUIDPipe) id: string) {
+    await this.postsService.recordView(id);
+    return { success: true };
   }
 
   @UseGuards(JwtAuthGuard)

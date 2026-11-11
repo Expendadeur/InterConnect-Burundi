@@ -63,6 +63,10 @@ export class Post {
   @Column({ name: 'likes_count', default: 0 })
   likesCount: number;
 
+  @ApiProperty({ example: 150 })
+  @Column({ name: 'views_count', default: 0 })
+  viewsCount: number;
+
   @ApiProperty({ example: 5 })
   @Column({ name: 'comments_count', default: 0 })
   commentsCount: number;
