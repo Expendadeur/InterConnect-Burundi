@@ -15,8 +15,7 @@ async function bootstrap() {
   app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
 
   const configService = app.get(ConfigService);
-  const nodeEnv = configService.get<string>('nodeEnv');
-  const port = configService.get<number>('port');
+  const nodeEnv = configService.get<string>('nodeEnv') || 'development';
   const corsOrigin = configService.get<string>('cors.origin');
 
   // Security: Helmet HTTP headers
