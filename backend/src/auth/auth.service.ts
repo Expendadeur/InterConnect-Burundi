@@ -110,13 +110,24 @@ export class AuthService {
   private async generateTokens(user: User): Promise<{ accessToken: string; refreshToken: string }> {
     const payload = { sub: user.id, email: user.email, username: user.username };
 
+    const accessSecret =
+      this.configService.get<string>('jwt.accessSecret') ||
+      process.env.JWT_SECRET ||
+      process.env.JWT_ACCESS_SECRET ||
+      'fallback_super_secret_jwt_key_interconnect_2026';
+
+    const refreshSecret =
+      this.configService.get<string>('jwt.refreshSecret') ||
+      process.env.JWT_REFRESH_SECRET ||
+      'fallback_super_secret_refresh_key_interconnect_2026';
+
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload, {
-        secret: this.configService.get<string>('jwt.accessSecret'),
+        secret: accessSecret,
         expiresIn: this.configService.get<string>('jwt.accessExpiry', '15m'),
       }),
       this.jwtService.signAsync(payload, {
-        secret: this.configService.get<string>('jwt.refreshSecret'),
+        secret: refreshSecret,
         expiresIn: this.configService.get<string>('jwt.refreshExpiry', '7d'),
       }),
     ]);

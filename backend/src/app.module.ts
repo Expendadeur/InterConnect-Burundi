@@ -72,35 +72,63 @@ import { HealthController } from './health.controller';
 
     // ─── Database (TypeORM + PostgreSQL via Supabase) ─────────────────────────
     TypeOrmModule.forRootAsync({
-      useFactory: (configService: ConfigService) => ({
-        type: 'postgres',
-        host: configService.get<string>('database.host'),
-        port: configService.get<number>('database.port'),
-        username: configService.get<string>('database.user'),
-        password: configService.get<string>('database.password'),
-        database: configService.get<string>('database.name'),
-        entities: [
-          User,
-          Post,
-          PostTranslation,
-          Comment,
-          Reaction,
-          Conversation,
-          Message,
-          Call,
-          Notification,
-        ],
-        synchronize: configService.get<string>('nodeEnv') !== 'production',
-        logging: configService.get<string>('nodeEnv') === 'development',
-        ssl: configService.get<boolean>('database.ssl')
-          ? { rejectUnauthorized: false }
-          : false,
-        extra: {
-          connectionTimeoutMillis: 10000,
-          idleTimeoutMillis: 30000,
-          max: 20,
-        },
-      }),
+      useFactory: (configService: ConfigService) => {
+        const dbUrl = process.env.DATABASE_URL;
+        if (dbUrl) {
+          return {
+            type: 'postgres',
+            url: dbUrl,
+            entities: [
+              User,
+              Post,
+              PostTranslation,
+              Comment,
+              Reaction,
+              Conversation,
+              Message,
+              Call,
+              Notification,
+            ],
+            synchronize: true,
+            ssl: { rejectUnauthorized: false },
+            extra: {
+              connectionTimeoutMillis: 10000,
+              idleTimeoutMillis: 30000,
+              max: 20,
+            },
+          };
+        }
+
+        return {
+          type: 'postgres',
+          host: configService.get<string>('database.host'),
+          port: configService.get<number>('database.port'),
+          username: configService.get<string>('database.user'),
+          password: configService.get<string>('database.password'),
+          database: configService.get<string>('database.name'),
+          entities: [
+            User,
+            Post,
+            PostTranslation,
+            Comment,
+            Reaction,
+            Conversation,
+            Message,
+            Call,
+            Notification,
+          ],
+          synchronize: true,
+          logging: configService.get<string>('nodeEnv') === 'development',
+          ssl: configService.get<boolean>('database.ssl')
+            ? { rejectUnauthorized: false }
+            : false,
+          extra: {
+            connectionTimeoutMillis: 10000,
+            idleTimeoutMillis: 30000,
+            max: 20,
+          },
+        };
+      },
       inject: [ConfigService],
     }),
 
