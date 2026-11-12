@@ -28,25 +28,26 @@ class PostsNotifier extends StateNotifier<PostsState> {
   Future<void> fetchPosts() async {
     state = PostsState(posts: state.posts, isLoading: true);
     try {
-      final res = await _apiClient.dio.get('/posts');
-      final list = (res.data['data'] as List<dynamic>?)
-              ?.map((item) => PostModel.fromJson(item))
-              .toList() ??
-          [];
+      final res = await _apiClient.dio.get('/posts?limit=50');
+      List<dynamic> rawList = [];
+      if (res.data is Map && res.data['data'] != null) {
+        rawList = res.data['data'];
+      } else if (res.data is List) {
+        rawList = res.data;
+      }
+
+      final list = rawList.map((item) => PostModel.fromJson(item)).toList();
       state = PostsState(posts: list, isLoading: false);
 
-      // Traduction automatique INVISIBLE : chaque post dans une autre langue est traduit immédiatement
+      // Traduction automatique intelligente en arrière-plan
       _autoTranslateAll(list);
     } catch (e) {
       state = PostsState(posts: state.posts, isLoading: false, error: 'Impossible de charger les posts');
     }
   }
 
-  /// Traduit en arrière-plan tous les posts qui ne sont pas dans la langue de l'utilisateur.
-  /// Pas de clic nécessaire — la traduction apparaît dès que l'IA répond.
   Future<void> _autoTranslateAll(List<PostModel> posts) async {
     for (final post in posts) {
-      // On ne traduit que si la langue source est différente de la langue cible
       if (post.originalLanguage != _userLanguage && post.translatedContent == null) {
         _translateInBackground(post);
       }
@@ -61,22 +62,27 @@ class PostsNotifier extends StateNotifier<PostsState> {
         'target_language': _userLanguage,
       });
       post.translatedContent = res.data['translated_text'] ?? res.data['translatedText'];
-      // Notifie l'UI que le texte traduit est disponible
       state = PostsState(posts: [...state.posts], isLoading: false);
-    } catch (_) {
-      // Silencieux — si la traduction échoue, on affiche le texte original
-    }
+    } catch (_) {}
   }
 
-  Future<void> createPost(String content, String originalLanguage) async {
+  Future<bool> createPost({
+    required String content,
+    required String originalLanguage,
+    String postType = 'text',
+    List<String> mediaUrls = const [],
+  }) async {
     try {
       await _apiClient.dio.post('/posts', data: {
         'content': content,
         'originalLanguage': originalLanguage,
+        'postType': postType,
+        'mediaUrls': mediaUrls,
       });
       await fetchPosts();
+      return true;
     } catch (e) {
-      rethrow;
+      return false;
     }
   }
 
@@ -86,17 +92,84 @@ class PostsNotifier extends StateNotifier<PostsState> {
       final updated = state.posts.map((p) {
         if (p.id == postId) {
           return PostModel(
-            id: p.id, authorId: p.authorId, authorName: p.authorName,
-            authorAvatar: p.authorAvatar, content: p.content,
-            originalLanguage: p.originalLanguage, mediaUrls: p.mediaUrls,
-            likesCount: p.likesCount + 1, commentsCount: p.commentsCount,
-            createdAt: p.createdAt, translatedContent: p.translatedContent,
+            id: p.id,
+            authorId: p.authorId,
+            authorName: p.authorName,
+            authorAvatar: p.authorAvatar,
+            authorIsOnline: p.authorIsOnline,
+            content: p.content,
+            originalLanguage: p.originalLanguage,
+            mediaUrls: p.mediaUrls,
+            postType: p.postType,
+            likesCount: p.likesCount + 1,
+            viewsCount: p.viewsCount,
+            commentsCount: p.commentsCount,
+            sharesCount: p.sharesCount,
+            createdAt: p.createdAt,
+            translatedContent: p.translatedContent,
           );
         }
         return p;
       }).toList();
       state = PostsState(posts: updated, isLoading: false);
     } catch (_) {}
+  }
+
+  Future<void> addComment(String postId, String commentText) async {
+    try {
+      await _apiClient.dio.post('/comments/post/$postId', data: {
+        'content': commentText,
+      });
+      final updated = state.posts.map((p) {
+        if (p.id == postId) {
+          return PostModel(
+            id: p.id,
+            authorId: p.authorId,
+            authorName: p.authorName,
+            authorAvatar: p.authorAvatar,
+            authorIsOnline: p.authorIsOnline,
+            content: p.content,
+            originalLanguage: p.originalLanguage,
+            mediaUrls: p.mediaUrls,
+            postType: p.postType,
+            likesCount: p.likesCount,
+            viewsCount: p.viewsCount,
+            commentsCount: p.commentsCount + 1,
+            sharesCount: p.sharesCount,
+            createdAt: p.createdAt,
+            translatedContent: p.translatedContent,
+          );
+        }
+        return p;
+      }).toList();
+      state = PostsState(posts: updated, isLoading: false);
+    } catch (_) {}
+  }
+
+  Future<void> recordShare(String postId) async {
+    final updated = state.posts.map((p) {
+      if (p.id == postId) {
+        return PostModel(
+          id: p.id,
+          authorId: p.authorId,
+          authorName: p.authorName,
+          authorAvatar: p.authorAvatar,
+          authorIsOnline: p.authorIsOnline,
+          content: p.content,
+          originalLanguage: p.originalLanguage,
+          mediaUrls: p.mediaUrls,
+          postType: p.postType,
+          likesCount: p.likesCount,
+          viewsCount: p.viewsCount,
+          commentsCount: p.commentsCount,
+          sharesCount: p.sharesCount + 1,
+          createdAt: p.createdAt,
+          translatedContent: p.translatedContent,
+        );
+      }
+      return p;
+    }).toList();
+    state = PostsState(posts: updated, isLoading: false);
   }
 }
 

@@ -17,6 +17,7 @@ export enum PostType {
   TEXT = 'text',
   PHOTO = 'photo',
   VIDEO = 'video',
+  AUDIO = 'audio',
 }
 
 export enum PostVisibility {
