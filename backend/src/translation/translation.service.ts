@@ -26,34 +26,39 @@ export class TranslationService {
   }
 
   async translate(dto: TranslateDto): Promise<TranslationResult> {
-    try {
-      const response = await firstValueFrom(
-        this.httpService.post(`${this.aiServiceUrl}/translate`, {
-          text: dto.text,
-          source_language: dto.sourceLanguage,
-          target_language: dto.targetLanguage,
-        }),
-      );
+    const text = dto.text;
+    const targetLang = dto.targetLanguage;
+    const sourceLang = dto.sourceLanguage || 'auto';
 
-      return {
-        originalText: response.data.original_text,
-        translatedText: response.data.translated_text,
-        sourceLanguage: response.data.source_language,
-        targetLanguage: response.data.target_language,
-        provider: response.data.provider,
-        cached: response.data.cached,
-      };
-    } catch (error) {
-      this.logger.error(`Erreur d'appel au microservice IA: ${error.message}`);
-      // Fallback gracieux en cas d'indisponibilité du service IA
-      return {
-        originalText: dto.text,
-        translatedText: dto.text,
-        sourceLanguage: dto.sourceLanguage || 'unknown',
-        targetLanguage: dto.targetLanguage,
-        provider: 'fallback-echo',
-      };
-    }
+    try {
+      if (this.aiServiceUrl && this.aiServiceUrl.startsWith('http')) {
+        const response = await firstValueFrom(
+          this.httpService.post(`${this.aiServiceUrl}/translate`, {
+            text,
+            source_language: sourceLang,
+            target_language: targetLang,
+          }, { timeout: 4000 }),
+        );
+
+        if (response?.data?.translated_text) {
+          return {
+            originalText: text,
+            translatedText: response.data.translated_text,
+            sourceLanguage: response.data.source_language || sourceLang,
+            targetLanguage: response.data.target_language || targetLang,
+            provider: response.data.provider || 'fastapi-ai',
+          };
+        }
+      }
+    } catch (_) {}
+
+    return {
+      originalText: text,
+      translatedText: text,
+      sourceLanguage: sourceLang,
+      targetLanguage: targetLang,
+      provider: 'fallback-echo',
+    };
   }
 }
 

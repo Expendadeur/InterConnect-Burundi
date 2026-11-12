@@ -51,6 +51,18 @@ export class PostsController {
     return this.postsService.findById(id);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Post(':id/like')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Aimer une publication' })
+  async toggleLike(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser('id') userId: string,
+  ) {
+    await this.postsService.incrementLike(id);
+    return { success: true };
+  }
+
   @Post(':id/view')
   @ApiOperation({ summary: 'Enregistrer une vue sur une publication pour la monétisation' })
   async recordView(@Param('id', ParseUUIDPipe) id: string) {

@@ -5,6 +5,7 @@ import { Comment } from './entities/comment.entity';
 import { Reaction, ReactionType } from './entities/reaction.entity';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { ToggleReactionDto } from './dto/reaction.dto';
+import { Post } from '../posts/entities/post.entity';
 
 @Injectable()
 export class CommentsService {
@@ -13,6 +14,8 @@ export class CommentsService {
     private readonly commentsRepository: Repository<Comment>,
     @InjectRepository(Reaction)
     private readonly reactionsRepository: Repository<Reaction>,
+    @InjectRepository(Post)
+    private readonly postsRepository: Repository<Post>,
   ) {}
 
   async create(postId: string, authorId: string, dto: CreateCommentDto): Promise<Comment> {
@@ -21,7 +24,9 @@ export class CommentsService {
       authorId,
       ...dto,
     });
-    return this.commentsRepository.save(comment);
+    const saved = await this.commentsRepository.save(comment);
+    await this.postsRepository.increment({ id: postId }, 'commentsCount', 1);
+    return saved;
   }
 
   async findByPost(postId: string): Promise<Comment[]> {
@@ -41,6 +46,9 @@ export class CommentsService {
     if (existing) {
       if (existing.reactionType === dto.reactionType) {
         await this.reactionsRepository.remove(existing);
+        if (dto.postId) {
+          await this.postsRepository.decrement({ id: dto.postId }, 'likesCount', 1);
+        }
         return { reacted: false };
       } else {
         existing.reactionType = dto.reactionType;
@@ -56,6 +64,9 @@ export class CommentsService {
       reactionType: dto.reactionType,
     });
     await this.reactionsRepository.save(reaction);
+    if (dto.postId) {
+      await this.postsRepository.increment({ id: dto.postId }, 'likesCount', 1);
+    }
     return { reacted: true, reactionType: dto.reactionType };
   }
 }

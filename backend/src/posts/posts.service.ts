@@ -74,6 +74,10 @@ export class PostsService {
     await this.postsRepository.increment({ id: postId }, 'viewsCount', 1);
   }
 
+  async incrementLike(postId: string): Promise<void> {
+    await this.postsRepository.increment({ id: postId }, 'likesCount', 1);
+  }
+
   async getTranslation(postId: string, targetLanguage: string): Promise<PostTranslation | null> {
     return this.translationsRepository.findOne({
       where: { postId, targetLanguage },

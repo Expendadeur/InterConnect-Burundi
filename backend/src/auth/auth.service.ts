@@ -8,7 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { UsersService } from '../users/users.service';
-import { User } from '../users/entities/user.entity';
+import { User, UserStatus } from '../users/entities/user.entity';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 
@@ -52,6 +52,7 @@ export class AuthService {
       phone: dto.phone,
       nationalId: dto.nationalId,
       country: dto.country,
+      status: UserStatus.ACTIVE,
     });
 
     const tokens = await this.generateTokens(user);

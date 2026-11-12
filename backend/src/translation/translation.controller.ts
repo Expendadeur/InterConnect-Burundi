@@ -16,5 +16,13 @@ export class TranslationController {
   async translate(@Body() dto: TranslateDto) {
     return this.translationService.translate(dto);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('translate')
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Alias route pour la traduction' })
+  async translateAlias(@Body() dto: TranslateDto) {
+    return this.translationService.translate(dto);
+  }
 }
 
