@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import '../utils/logger.dart';
@@ -6,12 +7,10 @@ import '../utils/logger.dart';
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   try {
     if (Firebase.apps.isEmpty) {
-      await Firebase.initializeApp();
+      await Firebase.initializeApp().timeout(const Duration(seconds: 2));
     }
-    AppLogger.d('Notification reçue en arrière-plan: ${message.messageId}');
-  } catch (e) {
-    AppLogger.w('Erreur handler background FCM: $e');
-  }
+    AppLogger.d('FCM Background: ${message.messageId}');
+  } catch (_) {}
 }
 
 class FCMService {
@@ -20,75 +19,51 @@ class FCMService {
       if (Firebase.apps.isNotEmpty) {
         return FirebaseMessaging.instance;
       }
-    } catch (e) {
-      AppLogger.w('FirebaseMessaging non disponible: $e');
-    }
+    } catch (_) {}
     return null;
   }
 
+  /// Initialise FCM de manière 100% NON-BLOQUANTE.
+  /// Ne bloque jamais le démarrage de l'appli ni les requêtes de l'utilisateur.
   static Future<void> initialize() async {
-    try {
-      final messaging = _messaging;
-      if (messaging == null) {
-        AppLogger.w('FCMService non initialisé car Firebase n\'est pas actif');
-        return;
-      }
+    // Exécuté dans un Future différé sans bloquer le thread principal
+    unawaited(
+      Future(() async {
+        try {
+          final messaging = _messaging;
+          if (messaging == null) return;
 
-      // Gestionnaire en arrière-plan
-      try {
-        FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-      } catch (e) {
-        AppLogger.w('Impossible d\'enregistrer le background message handler: $e');
-      }
+          FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-      // Demande de permission avec timeout (requis sur Android 13+)
-      try {
-        final settings = await messaging
-            .requestPermission(
-              alert: true,
-              badge: true,
-              sound: true,
-              provisional: false,
-            )
-            .timeout(const Duration(seconds: 4));
+          // Demande de permission avec un timeout très court (1 seconde)
+          await messaging
+              .requestPermission(
+                alert: true,
+                badge: true,
+                sound: true,
+                provisional: true,
+              )
+              .timeout(const Duration(seconds: 1));
 
-        if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-          AppLogger.i('Permission notifications accordée');
-        } else {
-          AppLogger.w('Permission notifications refusée ou différée');
+          // Écoute des messages en avant-plan
+          FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+            AppLogger.d('Message reçu: ${message.notification?.title}');
+          });
+        } catch (_) {
+          // Tolérance aux pannes silencieuse
         }
-      } catch (e) {
-        AppLogger.w('Délai d\'attente permission FCM dépassé ou refusé: $e');
-      }
-
-      // Récupération asynchrone du token sans bloquer
-      getToken().then((token) {
-        if (token != null) {
-          AppLogger.i('FCM Token de l’appareil: $token');
-        }
-      });
-
-      // Écoute des messages au premier plan
-      FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-        AppLogger.d('Message reçu au premier plan: ${message.notification?.title}');
-      });
-
-      // Écoute de l'ouverture via notification
-      FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-        AppLogger.i('App ouverte depuis la notification: ${message.data}');
-      });
-    } catch (e) {
-      AppLogger.w('Initialisation FCM ignorée (mode dégradé): $e');
-    }
+      }),
+    );
   }
 
+  /// Récupération ultra-rapide du token FCM avec timeout de 1.5 seconde.
+  /// Si le service Google Play n'est pas prêt, retourne null immédiatement.
   static Future<String?> getToken() async {
     try {
       final messaging = _messaging;
       if (messaging == null) return null;
-      return await messaging.getToken().timeout(const Duration(seconds: 4));
-    } catch (e) {
-      AppLogger.w('Impossible de récupérer le token FCM (offline ou Google Play non dispo): $e');
+      return await messaging.getToken().timeout(const Duration(milliseconds: 1500));
+    } catch (_) {
       return null;
     }
   }
