@@ -7,92 +7,117 @@ import {
   Body,
   Param,
   Query,
-  UseGuards,
   ParseUUIDPipe,
+  UseGuards,
+  HttpCode,
+  HttpStatus,
+  DefaultValuePipe,
+  ParseIntPipe,
+  ClassSerializerInterceptor,
+  UseInterceptors,
+  Optional,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { User } from '../users/entities/user.entity';
 
-@ApiTags('Posts')
-@Controller('posts')
+@ApiTags('posts')
+@UseInterceptors(ClassSerializerInterceptor)
+@Controller({ path: 'posts', version: '1' })
 export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
-  @UseGuards(JwtAuthGuard)
-  @Post()
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Créer une nouvelle publication' })
-  async create(
-    @CurrentUser('id') userId: string,
-    @Body() dto: CreatePostDto,
-  ) {
-    return this.postsService.create(userId, dto);
-  }
-
   @Get()
-  @ApiOperation({ summary: 'Récupérer le fil des publications avec pagination et traduction automatique' })
+  @ApiOperation({ summary: 'Lister les publications (paginé, avec traduction optionnelle)' })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
-  @ApiQuery({ name: 'lang', required: false, type: String })
-  async findAll(
-    @Query('page') page = 1,
-    @Query('limit') limit = 20,
+  @ApiQuery({ name: 'lang', required: false, type: String, description: 'Langue cible pour la traduction (ex: en, fr, rn)' })
+  findAll(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
     @Query('lang') lang?: string,
   ) {
-    return this.postsService.findAll(+page, +limit, lang);
+    return this.postsService.findAll(page, Math.min(limit, 100), lang);
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Récupérer une publication par son identifiant' })
-  async findOne(@Param('id', ParseUUIDPipe) id: string) {
-    await this.postsService.recordView(id);
-    return this.postsService.findById(id);
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @Post(':id/like')
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Aimer une publication' })
-  async toggleLike(
+  @ApiOperation({ summary: 'Obtenir un post par ID' })
+  @ApiQuery({ name: 'lang', required: false, type: String })
+  @ApiResponse({ status: 200, description: 'Post retourné' })
+  @ApiResponse({ status: 404, description: 'Post non trouvé' })
+  findOne(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser('id') userId: string,
+    @Query('lang') lang?: string,
   ) {
-    await this.postsService.incrementLike(id);
-    return { success: true };
+    return this.postsService.findOne(id, lang);
   }
 
-  @Post(':id/view')
-  @ApiOperation({ summary: 'Enregistrer une vue sur une publication pour la monétisation' })
-  async recordView(@Param('id', ParseUUIDPipe) id: string) {
-    await this.postsService.recordView(id);
-    return { success: true };
-  }
-
+  @Post()
   @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('access-token')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Créer une nouvelle publication' })
+  @ApiResponse({ status: 201, description: 'Publication créée' })
+  create(@CurrentUser() user: User, @Body() dto: CreatePostDto) {
+    return this.postsService.create(user.id, dto);
+  }
+
   @Put(':id')
-  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('access-token')
   @ApiOperation({ summary: 'Mettre à jour une publication' })
-  async update(
+  update(
     @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser('id') userId: string,
+    @CurrentUser() user: User,
     @Body() dto: UpdatePostDto,
   ) {
-    return this.postsService.update(id, userId, dto);
+    return this.postsService.update(id, user.id, user.role, dto);
   }
 
-  @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('access-token')
+  @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Supprimer une publication' })
-  async remove(
-    @Param('id', ParseUUIDPipe) id: string,
-    @CurrentUser('id') userId: string,
+  remove(@Param('id', ParseUUIDPipe) id: string, @CurrentUser() user: User) {
+    return this.postsService.remove(id, user.id, user.role);
+  }
+
+  @Post(':id/like')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('access-token')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Aimer une publication' })
+  like(@Param('id', ParseUUIDPipe) id: string) {
+    return this.postsService.likePost(id);
+  }
+
+  @Delete(':id/like')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('access-token')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Retirer son like d\'une publication' })
+  unlike(@Param('id', ParseUUIDPipe) id: string) {
+    return this.postsService.unlikePost(id);
+  }
+
+  @Get('author/:authorId')
+  @ApiOperation({ summary: 'Lister les publications d\'un auteur' })
+  findByAuthor(
+    @Param('authorId', ParseUUIDPipe) authorId: string,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
   ) {
-    await this.postsService.delete(id, userId);
-    return { message: 'Post successfully deleted' };
+    return this.postsService.findByAuthor(authorId, page, Math.min(limit, 100));
   }
 }

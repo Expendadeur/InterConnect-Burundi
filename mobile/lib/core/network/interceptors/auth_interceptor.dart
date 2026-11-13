@@ -1,57 +1,90 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
+import '../../config/env_config.dart';
+import '../../utils/logger.dart';
+
 class AuthInterceptor extends Interceptor {
-  final FlutterSecureStorage _storage;
-  final Dio _dio;
+  final Dio dio;
+  final FlutterSecureStorage storage;
+  bool _isRefreshing = false;
 
-  static const String tokenKey = 'jwt_access_token';
-  static const String refreshTokenKey = 'jwt_refresh_token';
-
-  AuthInterceptor(this._storage, this._dio);
+  AuthInterceptor({required this.dio, required this.storage});
 
   @override
-  Future<void> onRequest(
+  void onRequest(
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
-    final token = await _storage.read(key: tokenKey);
-    if (token != null && token.isNotEmpty) {
+    final path = options.path;
+    if (path.contains('/auth/login') ||
+        path.contains('/auth/register') ||
+        path.contains('/auth/refresh')) {
+      return handler.next(options);
+    }
+
+    final token = await storage.read(key: 'access_token');
+    if (token != null) {
       options.headers['Authorization'] = 'Bearer $token';
     }
-    return handler.next(options);
+    handler.next(options);
   }
 
   @override
-  Future<void> onError(
-    DioException err,
-    ErrorInterceptorHandler handler,
-  ) async {
-    if (err.response?.statusCode == 401) {
-      final refreshToken = await _storage.read(key: refreshTokenKey);
-      if (refreshToken != null && refreshToken.isNotEmpty) {
-        try {
-          final response = await _dio.post(
-            '/auth/refresh',
-            data: {'refreshToken': refreshToken},
-          );
-
-          final newAccessToken = response.data['accessToken'];
-          final newRefreshToken = response.data['refreshToken'];
-
-          await _storage.write(key: tokenKey, value: newAccessToken);
-          await _storage.write(key: refreshTokenKey, value: newRefreshToken);
-
-          final requestOptions = err.requestOptions;
-          requestOptions.headers['Authorization'] = 'Bearer $newAccessToken';
-          final clonedRequest = await _dio.fetch(requestOptions);
+  void onError(DioException err, ErrorInterceptorHandler handler) async {
+    if (err.response?.statusCode == 401 && !_isRefreshing) {
+      _isRefreshing = true;
+      try {
+        final refreshed = await _refreshToken();
+        if (refreshed) {
+          final newToken = await storage.read(key: 'access_token');
+          final opts = err.requestOptions;
+          opts.headers['Authorization'] = 'Bearer $newToken';
+          final clonedRequest = await dio.fetch(opts);
+          _isRefreshing = false;
           return handler.resolve(clonedRequest);
-        } catch (_) {
-          await _storage.deleteAll();
         }
+      } catch (e) {
+        AppLogger.e('Token refresh failed', error: e);
+      } finally {
+        _isRefreshing = false;
       }
+
+      await storage.delete(key: 'access_token');
+      await storage.delete(key: 'refresh_token');
     }
-    return handler.next(err);
+    handler.next(err);
+  }
+
+  Future<bool> _refreshToken() async {
+    try {
+      final refreshToken = await storage.read(key: 'refresh_token');
+      if (refreshToken == null) return false;
+
+      final refreshDio = Dio(
+        BaseOptions(
+          baseUrl: '${EnvConfig.apiBaseUrl}/api/v1',
+          connectTimeout: const Duration(seconds: 15),
+          receiveTimeout: const Duration(seconds: 15),
+        ),
+      );
+
+      final response = await refreshDio.post(
+        '/auth/refresh',
+        data: {'refresh_token': refreshToken},
+      );
+
+      if (response.statusCode == 200) {
+        final data = response.data;
+        await storage.write(key: 'access_token', value: data['access_token']);
+        if (data['refresh_token'] != null) {
+          await storage.write(key: 'refresh_token', value: data['refresh_token']);
+        }
+        return true;
+      }
+    } catch (e) {
+      AppLogger.e('Token refresh error', error: e);
+    }
+    return false;
   }
 }
-

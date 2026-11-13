@@ -1,40 +1,46 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
+  IsEnum,
   IsString,
   IsOptional,
-  IsEnum,
+  IsUrl,
   IsArray,
   MaxLength,
+  IsNotEmpty,
+  Length,
 } from 'class-validator';
-import { PostType, PostVisibility } from '../entities/post.entity';
+import { PostType } from '../entities/post.entity';
 
 export class CreatePostDto {
-  @ApiPropertyOptional({ example: 'Ndashaka kumenya ibijanye n igihugu cawe.' })
-  @IsOptional()
+  @ApiProperty({ enum: PostType, example: PostType.TEXT })
+  @IsEnum(PostType)
+  type: PostType;
+
+  @ApiProperty({ example: 'Bonjour Burundi! 🇧🇮' })
   @IsString()
+  @IsNotEmpty()
   @MaxLength(5000)
-  content?: string;
+  content: string;
 
-  @ApiPropertyOptional({ example: 'rn' })
+  @ApiPropertyOptional({ example: 'https://cdn.example.com/media/post.jpg' })
   @IsOptional()
-  @IsString()
-  @MaxLength(10)
-  originalLanguage?: string;
+  @IsUrl()
+  mediaUrl?: string;
 
-  @ApiPropertyOptional({ example: ['https://storage.interconnect.bi/img.jpg'] })
+  @ApiPropertyOptional({ example: 'https://example.com' })
+  @IsOptional()
+  @IsUrl()
+  linkUrl?: string;
+
+  @ApiPropertyOptional({ example: ['technology', 'burundi'] })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  mediaUrls?: string[];
+  tags?: string[];
 
-  @ApiPropertyOptional({ enum: PostType, default: PostType.TEXT })
+  @ApiPropertyOptional({ example: 'fr' })
   @IsOptional()
-  @IsEnum(PostType)
-  postType?: PostType;
-
-  @ApiPropertyOptional({ enum: PostVisibility, default: PostVisibility.PUBLIC })
-  @IsOptional()
-  @IsEnum(PostVisibility)
-  visibility?: PostVisibility;
+  @IsString()
+  @Length(2, 10)
+  originalLanguage?: string;
 }
-

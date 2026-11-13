@@ -11,19 +11,19 @@ import {
 import { ApiProperty } from '@nestjs/swagger';
 import { User } from '../../users/entities/user.entity';
 import { Comment } from '../../comments/entities/comment.entity';
-import { PostTranslation } from './post-translation.entity';
 
 export enum PostType {
   TEXT = 'text',
-  PHOTO = 'photo',
+  IMAGE = 'image',
   VIDEO = 'video',
   AUDIO = 'audio',
+  LINK = 'link',
 }
 
-export enum PostVisibility {
-  PUBLIC = 'public',
-  FRIENDS = 'friends',
-  PRIVATE = 'private',
+export enum PostStatus {
+  PUBLISHED = 'published',
+  DRAFT = 'draft',
+  ARCHIVED = 'archived',
 }
 
 @Entity('posts')
@@ -32,60 +32,61 @@ export class Post {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @ApiProperty({ example: 'author-uuid' })
-  @Column({ name: 'author_id' })
-  authorId: string;
+  @ApiProperty({ enum: PostType, example: PostType.TEXT })
+  @Column({ type: 'enum', enum: PostType, default: PostType.TEXT })
+  type: PostType;
 
-  @ManyToOne(() => User, (user) => user.posts, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'author_id' })
-  author: User;
-
-  @ApiProperty({ example: 'Muraho Burundi! Une belle journée commence.' })
-  @Column({ type: 'text', nullable: true })
+  @ApiProperty({ example: 'Bonjour Burundi! 🇧🇮' })
+  @Column({ type: 'text' })
   content: string;
 
-  @ApiProperty({ example: 'rn' })
+  @ApiProperty({ example: 'https://cdn.example.com/media/post.jpg', required: false })
+  @Column({ name: 'media_url', nullable: true })
+  mediaUrl: string;
+
+  @ApiProperty({ example: 'https://example.com', required: false })
+  @Column({ name: 'link_url', nullable: true })
+  linkUrl: string;
+
+  @ApiProperty({ example: ['technology', 'burundi'] })
+  @Column({ type: 'text', array: true, default: [] })
+  tags: string[];
+
+  @ApiProperty({ example: 'fr' })
   @Column({ name: 'original_language', length: 10, default: 'fr' })
   originalLanguage: string;
 
-  @ApiProperty({ example: ['https://storage.interconnect.bi/posts/img1.jpg'] })
-  @Column({ name: 'media_urls', type: 'jsonb', default: () => "'[]'" })
-  mediaUrls: string[];
+  @ApiProperty({ enum: PostStatus, example: PostStatus.PUBLISHED })
+  @Column({ type: 'enum', enum: PostStatus, default: PostStatus.PUBLISHED })
+  status: PostStatus;
 
-  @ApiProperty({ enum: PostType, default: PostType.TEXT })
-  @Column({ name: 'post_type', length: 20, default: PostType.TEXT })
-  postType: PostType;
-
-  @ApiProperty({ enum: PostVisibility, default: PostVisibility.PUBLIC })
-  @Column({ length: 20, default: PostVisibility.PUBLIC })
-  visibility: PostVisibility;
-
-  @ApiProperty({ example: 42 })
+  @ApiProperty({ example: 142 })
   @Column({ name: 'likes_count', default: 0 })
   likesCount: number;
 
-  @ApiProperty({ example: 150 })
-  @Column({ name: 'views_count', default: 0 })
-  viewsCount: number;
-
-  @ApiProperty({ example: 5 })
+  @ApiProperty({ example: 7 })
   @Column({ name: 'comments_count', default: 0 })
   commentsCount: number;
 
-  @ApiProperty({ example: 2 })
-  @Column({ name: 'shares_count', default: 0 })
-  sharesCount: number;
+  @ApiProperty({ example: 320 })
+  @Column({ name: 'views_count', default: 0 })
+  viewsCount: number;
+
+  @ApiProperty()
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
+
+  @ApiProperty()
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
+  updatedAt: Date;
+
+  @Column({ name: 'author_id' })
+  authorId: string;
+
+  @ManyToOne(() => User, (user) => user.posts, { eager: true, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'author_id' })
+  author: User;
 
   @OneToMany(() => Comment, (comment) => comment.post)
   comments: Comment[];
-
-  @OneToMany(() => PostTranslation, (translation) => translation.post)
-  translations: PostTranslation[];
-
-  @CreateDateColumn({ name: 'created_at' })
-  createdAt: Date;
-
-  @UpdateDateColumn({ name: 'updated_at' })
-  updatedAt: Date;
 }
-

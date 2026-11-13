@@ -5,56 +5,68 @@ import {
   HttpCode,
   HttpStatus,
   UseGuards,
-  Req,
+  ClassSerializerInterceptor,
+  UseInterceptors,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
-import { RefreshTokenDto } from './dto/refresh-token.dto';
-import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RefreshJwtAuthGuard } from './guards/refresh-jwt-auth.guard';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { CurrentUser } from '../common/decorators/current-user.decorator';
+import { User } from '../users/entities/user.entity';
+import { Throttle } from '@nestjs/throttler';
 
-@ApiTags('Auth')
-@Controller('auth')
+@ApiTags('auth')
+@UseInterceptors(ClassSerializerInterceptor)
+@Controller({ path: 'auth', version: '1' })
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('register')
-  @ApiOperation({ summary: 'Inscription d’un nouvel utilisateur' })
-  @ApiResponse({ status: 201, description: 'Utilisateur enregistré avec succès' })
-  async register(@Body() dto: RegisterDto) {
+  @Throttle({ default: { ttl: 60000, limit: 5 } })
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Créer un nouveau compte utilisateur' })
+  @ApiResponse({ status: 201, description: 'Compte créé avec succès' })
+  @ApiResponse({ status: 409, description: 'Email ou username déjà utilisé' })
+  register(@Body() dto: RegisterDto) {
     return this.authService.register(dto);
   }
 
   @Post('login')
+  @Throttle({ default: { ttl: 60000, limit: 10 } })
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Connexion utilisateur' })
+  @ApiOperation({ summary: 'Connexion et obtention des tokens JWT' })
   @ApiResponse({ status: 200, description: 'Connexion réussie' })
-  async login(@Body() dto: LoginDto) {
+  @ApiResponse({ status: 401, description: 'Identifiants invalides' })
+  login(@Body() dto: LoginDto) {
     return this.authService.login(dto);
   }
 
-  @UseGuards(RefreshJwtAuthGuard)
-  @Post('refresh')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Rafraîchir les jetons d’accès' })
-  async refresh(
-    @CurrentUser('id') userId: string,
-    @Body() dto: RefreshTokenDto,
-  ) {
-    return this.authService.refreshTokens(userId, dto.refreshToken);
+  @Post('logout')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('access-token')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Déconnexion et invalidation des tokens' })
+  @ApiResponse({ status: 204, description: 'Déconnexion réussie' })
+  logout(@CurrentUser() user: User) {
+    return this.authService.logout(user.id);
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Post('logout')
+  @Post('refresh')
+  @UseGuards(RefreshJwtAuthGuard)
+  @ApiBearerAuth('refresh-token')
   @HttpCode(HttpStatus.OK)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Déconnexion utilisateur' })
-  async logout(@CurrentUser('id') userId: string) {
-    await this.authService.logout(userId);
-    return { message: 'Logged out successfully' };
+  @ApiOperation({ summary: 'Rafraîchir les tokens avec le refresh token' })
+  @ApiResponse({ status: 200, description: 'Tokens rafraîchis' })
+  @ApiResponse({ status: 401, description: 'Refresh token invalide ou expiré' })
+  refresh(@CurrentUser() user: User) {
+    return this.authService.refreshTokens(user);
   }
 }
-

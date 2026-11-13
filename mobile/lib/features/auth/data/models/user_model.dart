@@ -1,46 +1,39 @@
-class UserModel {
-  final String id;
-  final String email;
-  final String username;
-  final String? firstName;
-  final String? lastName;
-  final String? avatarUrl;
-  final String? bio;
-  final String preferredLanguage;
-  final String? phone;
-  final String? nationalId;
-  final String? country;
-  final bool isOnline;
+import '../../../domain/entities/user_entity.dart';
 
+class UserModel extends UserEntity {
   const UserModel({
-    required this.id,
-    required this.email,
-    required this.username,
-    this.firstName,
-    this.lastName,
-    this.avatarUrl,
-    this.bio,
-    this.preferredLanguage = 'fr',
-    this.phone,
-    this.nationalId,
-    this.country,
-    this.isOnline = true,
+    required super.id,
+    required super.email,
+    required super.username,
+    required super.displayName,
+    super.avatarUrl,
+    super.bio,
+    super.country,
+    super.phone,
+    super.nationalId,
+    super.preferredLanguage,
+    super.isVerified,
+    super.isOnline,
+    required super.createdAt,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      id: json['id'] ?? '',
+      id: json['id']?.toString() ?? '',
       email: json['email'] ?? '',
       username: json['username'] ?? '',
-      firstName: json['firstName'] ?? json['first_name'],
-      lastName: json['lastName'] ?? json['last_name'],
-      avatarUrl: json['avatarUrl'] ?? json['avatar_url'],
+      displayName: json['display_name'] ?? json['displayName'] ?? json['full_name'] ?? '',
+      avatarUrl: json['avatar_url'] ?? json['avatarUrl'],
       bio: json['bio'],
-      preferredLanguage: json['preferredLanguage'] ?? json['preferred_language'] ?? 'fr',
-      phone: json['phone'],
-      nationalId: json['nationalId'] ?? json['national_id'],
       country: json['country'],
-      isOnline: json['isOnline'] ?? json['is_online'] ?? true,
+      phone: json['phone'],
+      nationalId: json['national_id'] ?? json['nationalId'],
+      preferredLanguage: json['preferred_language'] ?? json['preferredLanguage'] ?? 'fr',
+      isVerified: json['is_verified'] ?? json['isVerified'] ?? false,
+      isOnline: json['is_online'] ?? json['isOnline'] ?? false,
+      createdAt: json['created_at'] != null
+          ? DateTime.tryParse(json['created_at']) ?? DateTime.now()
+          : DateTime.now(),
     );
   }
 
@@ -49,19 +42,48 @@ class UserModel {
       'id': id,
       'email': email,
       'username': username,
-      'firstName': firstName,
-      'lastName': lastName,
-      'avatarUrl': avatarUrl,
+      'display_name': displayName,
+      'avatar_url': avatarUrl,
       'bio': bio,
-      'preferredLanguage': preferredLanguage,
-      'phone': phone,
-      'nationalId': nationalId,
       'country': country,
-      'isOnline': isOnline,
+      'phone': phone,
+      'national_id': nationalId,
+      'preferred_language': preferredLanguage,
+      'is_verified': isVerified,
+      'is_online': isOnline,
+      'created_at': createdAt.toIso8601String(),
     };
   }
 
-  String get displayName => (firstName != null && firstName!.isNotEmpty)
-      ? '$firstName ${lastName ?? ""}'.trim()
-      : username;
+  UserModel copyWith({
+    String? id,
+    String? email,
+    String? username,
+    String? displayName,
+    String? avatarUrl,
+    String? bio,
+    String? country,
+    String? phone,
+    String? nationalId,
+    String? preferredLanguage,
+    bool? isVerified,
+    bool? isOnline,
+    DateTime? createdAt,
+  }) {
+    return UserModel(
+      id: id ?? this.id,
+      email: email ?? this.email,
+      username: username ?? this.username,
+      displayName: displayName ?? this.displayName,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
+      bio: bio ?? this.bio,
+      country: country ?? this.country,
+      phone: phone ?? this.phone,
+      nationalId: nationalId ?? this.nationalId,
+      preferredLanguage: preferredLanguage ?? this.preferredLanguage,
+      isVerified: isVerified ?? this.isVerified,
+      isOnline: isOnline ?? this.isOnline,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
 }
