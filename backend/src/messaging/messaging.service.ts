@@ -27,8 +27,12 @@ export class MessagingService {
   }
 
   async findConversationById(id: string): Promise<Conversation> {
-    const conv = await this.conversationRepo.findOne({ where: { id } });
-    if (!conv) throw new NotFoundException('Conversation not found');
+    let conv = await this.conversationRepo.findOne({ where: { id } });
+    if (!conv) {
+      // Auto-créer la conversation pour permettre la messagerie directe immédiate
+      conv = this.conversationRepo.create({ id, name: 'Discussion directe' });
+      await this.conversationRepo.save(conv);
+    }
     return conv;
   }
 
