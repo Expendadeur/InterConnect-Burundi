@@ -1,7 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../data/models/post_model.dart';
-import 'translation_badge.dart';
 
 class PostCard extends StatefulWidget {
   final PostModel post;
@@ -24,11 +24,14 @@ class PostCard extends StatefulWidget {
 class _PostCardState extends State<PostCard> {
   bool _isLiked = false;
   bool _isDisliked = false;
-  bool _showOriginal = false;
 
   @override
   Widget build(BuildContext context) {
     final post = widget.post;
+
+    // L'innovation clé : Afficher DIRECTEMENT dans la langue de l'utilisateur
+    // sans badge encombrant qui rappelle la barrière linguistique
+    final displayText = post.translatedContent ?? post.content;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -77,7 +80,7 @@ class _PostCardState extends State<PostCard> {
                           width: 13,
                           height: 13,
                           decoration: BoxDecoration(
-                            color: const Color(0xFF1EB53A), // Vert vif en ligne
+                            color: const Color(0xFF1EB53A),
                             shape: BoxShape.circle,
                             border: Border.all(color: Colors.white, width: 2),
                           ),
@@ -87,7 +90,7 @@ class _PostCardState extends State<PostCard> {
                 ),
                 const SizedBox(width: 10),
 
-                // Informations de l'auteur & Heure
+                // Auteur & Date
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -120,8 +123,6 @@ class _PostCardState extends State<PostCard> {
                           const Text('•', style: TextStyle(color: Colors.grey, fontSize: 11)),
                           const SizedBox(width: 4),
                           const Icon(Icons.public, size: 12, color: Colors.grey),
-                          const SizedBox(width: 6),
-                          TranslationBadge(languageCode: post.originalLanguage),
                         ],
                       ),
                     ],
@@ -139,7 +140,6 @@ class _PostCardState extends State<PostCard> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Bouton J'aime (Like)
                       InkWell(
                         onTap: () {
                           setState(() {
@@ -158,7 +158,6 @@ class _PostCardState extends State<PostCard> {
                           ),
                         ),
                       ),
-                      // Bouton Je n'aime pas (Dislike)
                       InkWell(
                         onTap: () {
                           setState(() {
@@ -176,7 +175,6 @@ class _PostCardState extends State<PostCard> {
                           ),
                         ),
                       ),
-                      // Bouton Commenter
                       InkWell(
                         onTap: widget.onComment,
                         borderRadius: BorderRadius.circular(15),
@@ -189,7 +187,6 @@ class _PostCardState extends State<PostCard> {
                           ),
                         ),
                       ),
-                      // Bouton Partager
                       InkWell(
                         onTap: widget.onShare,
                         borderRadius: BorderRadius.circular(15),
@@ -209,39 +206,17 @@ class _PostCardState extends State<PostCard> {
             ),
           ),
 
-          // ─── CONTENU TEXTUEL (TRADUIT OU ORIGINAL) ───
-          if (post.content.isNotEmpty)
+          // ─── TEXTE TRADUIT DIRECTEMENT DANS LA LANGUE DE L'UTILISATEUR ───
+          if (displayText.isNotEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _showOriginal || post.translatedContent == null
-                        ? post.content
-                        : post.translatedContent!,
-                    style: const TextStyle(fontSize: 14.5, height: 1.35, color: Colors.black87),
-                  ),
-                  if (post.translatedContent != null)
-                    GestureDetector(
-                      onTap: () => setState(() => _showOriginal = !_showOriginal),
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 4.0),
-                        child: Text(
-                          _showOriginal ? 'Voir la traduction IA' : 'Voir le texte original',
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
+              child: Text(
+                displayText,
+                style: const TextStyle(fontSize: 14.5, height: 1.35, color: Colors.black87),
               ),
             ),
 
-          // ─── RENDU MULTIMÉDIA RÉEL (PHOTO, VIDÉO, MUSIQUE) ───
+          // ─── RENDU MULTIMÉDIA (FICHIER LOCAL OU EN LIGNE) ───
           if (post.mediaUrls.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 8),
@@ -250,12 +225,11 @@ class _PostCardState extends State<PostCard> {
 
           const SizedBox(height: 8),
 
-          // ─── BARRE STATISTIQUES & VUES (FACEBOOK STYLE + MONÉTISATION) ───
+          // ─── STATISTIQUES & VUES ───
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
             child: Row(
               children: [
-                // Compteur de J'aime
                 Row(
                   children: [
                     Container(
@@ -274,7 +248,6 @@ class _PostCardState extends State<PostCard> {
                   ],
                 ),
                 const Spacer(),
-                // Commentaires
                 Text(
                   '${post.commentsCount} commentaires',
                   style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
@@ -282,7 +255,6 @@ class _PostCardState extends State<PostCard> {
                 const SizedBox(width: 8),
                 Text('•', style: TextStyle(color: Colors.grey.shade400)),
                 const SizedBox(width: 8),
-                // Partages
                 Text(
                   '${post.sharesCount} partages',
                   style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
@@ -290,7 +262,6 @@ class _PostCardState extends State<PostCard> {
                 const SizedBox(width: 8),
                 Text('•', style: TextStyle(color: Colors.grey.shade400)),
                 const SizedBox(width: 8),
-                // Vues (Monétisation)
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
@@ -322,24 +293,26 @@ class _PostCardState extends State<PostCard> {
   }
 
   Widget _buildMediaPreview(PostModel post) {
-    final mediaUrl = post.mediaUrls.first;
+    final mediaPath = post.mediaUrls.first;
+    final isLocalFile = !mediaPath.startsWith('http');
 
     if (post.postType == 'photo') {
       return ClipRRect(
-        borderRadius: BorderRadius.zero,
-        child: Image.network(
-          mediaUrl,
-          fit: BoxFit.cover,
-          width: double.infinity,
-          height: 240,
-          errorBuilder: (_, __, ___) => Container(
-            height: 150,
-            color: Colors.grey.shade200,
-            child: const Center(
-              child: Icon(Icons.broken_image, size: 40, color: Colors.grey),
-            ),
-          ),
-        ),
+        child: isLocalFile
+            ? Image.file(
+                File(mediaPath),
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: 240,
+                errorBuilder: (_, __, ___) => _errorPlaceholder(),
+              )
+            : Image.network(
+                mediaPath,
+                fit: BoxFit.cover,
+                width: double.infinity,
+                height: 240,
+                errorBuilder: (_, __, ___) => _errorPlaceholder(),
+              ),
       );
     } else if (post.postType == 'video') {
       return Container(
@@ -428,7 +401,7 @@ class _PostCardState extends State<PostCard> {
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('Lecture du morceau audio en cours...'),
+                    content: Text('Lecture de la musique en cours...'),
                     duration: Duration(seconds: 2),
                   ),
                 );
@@ -440,5 +413,15 @@ class _PostCardState extends State<PostCard> {
     }
 
     return const SizedBox.shrink();
+  }
+
+  Widget _errorPlaceholder() {
+    return Container(
+      height: 150,
+      color: Colors.grey.shade200,
+      child: const Center(
+        child: Icon(Icons.broken_image, size: 40, color: Colors.grey),
+      ),
+    );
   }
 }

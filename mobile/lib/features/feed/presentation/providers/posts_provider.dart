@@ -39,7 +39,7 @@ class PostsNotifier extends StateNotifier<PostsState> {
       final list = rawList.map((item) => PostModel.fromJson(item)).toList();
       state = PostsState(posts: list, isLoading: false);
 
-      // Traduction automatique intelligente en arrière-plan
+      // Traduction automatique transparente vers la langue de l'utilisateur
       _autoTranslateAll(list);
     } catch (e) {
       state = PostsState(posts: state.posts, isLoading: false, error: 'Impossible de charger les posts');
@@ -48,7 +48,8 @@ class PostsNotifier extends StateNotifier<PostsState> {
 
   Future<void> _autoTranslateAll(List<PostModel> posts) async {
     for (final post in posts) {
-      if (post.originalLanguage != _userLanguage && post.translatedContent == null) {
+      if (post.originalLanguage.toLowerCase() != _userLanguage.toLowerCase() &&
+          post.translatedContent == null) {
         _translateInBackground(post);
       }
     }
@@ -61,8 +62,12 @@ class PostsNotifier extends StateNotifier<PostsState> {
         'source_language': post.originalLanguage,
         'target_language': _userLanguage,
       });
-      post.translatedContent = res.data['translated_text'] ?? res.data['translatedText'];
-      state = PostsState(posts: [...state.posts], isLoading: false);
+
+      final translated = res.data['translatedText'] ?? res.data['translated_text'];
+      if (translated != null && translated.toString().isNotEmpty) {
+        post.translatedContent = translated.toString();
+        state = PostsState(posts: [...state.posts], isLoading: false);
+      }
     } catch (_) {}
   }
 
@@ -82,6 +87,22 @@ class PostsNotifier extends StateNotifier<PostsState> {
       await fetchPosts();
       return true;
     } catch (e) {
+      return false;
+    }
+  }
+
+  Future<bool> shareToMyProfile(PostModel originalPost) async {
+    try {
+      final shareContent = 'Partagé : ${originalPost.content}';
+      await _apiClient.dio.post('/posts', data: {
+        'content': shareContent,
+        'originalLanguage': originalPost.originalLanguage,
+        'postType': originalPost.postType,
+        'mediaUrls': originalPost.mediaUrls,
+      });
+      await fetchPosts();
+      return true;
+    } catch (_) {
       return false;
     }
   }
@@ -119,6 +140,7 @@ class PostsNotifier extends StateNotifier<PostsState> {
     try {
       await _apiClient.dio.post('/comments/post/$postId', data: {
         'content': commentText,
+        'originalLanguage': _userLanguage,
       });
       final updated = state.posts.map((p) {
         if (p.id == postId) {
@@ -144,32 +166,6 @@ class PostsNotifier extends StateNotifier<PostsState> {
       }).toList();
       state = PostsState(posts: updated, isLoading: false);
     } catch (_) {}
-  }
-
-  Future<void> recordShare(String postId) async {
-    final updated = state.posts.map((p) {
-      if (p.id == postId) {
-        return PostModel(
-          id: p.id,
-          authorId: p.authorId,
-          authorName: p.authorName,
-          authorAvatar: p.authorAvatar,
-          authorIsOnline: p.authorIsOnline,
-          content: p.content,
-          originalLanguage: p.originalLanguage,
-          mediaUrls: p.mediaUrls,
-          postType: p.postType,
-          likesCount: p.likesCount,
-          viewsCount: p.viewsCount,
-          commentsCount: p.commentsCount,
-          sharesCount: p.sharesCount + 1,
-          createdAt: p.createdAt,
-          translatedContent: p.translatedContent,
-        );
-      }
-      return p;
-    }).toList();
-    state = PostsState(posts: updated, isLoading: false);
   }
 }
 
