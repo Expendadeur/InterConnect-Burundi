@@ -20,6 +20,12 @@ import { CurrentUser } from '../common/decorators/current-user.decorator';
 export class MessagingController {
   constructor(private readonly messagingService: MessagingService) {}
 
+  @Get('conversations')
+  @ApiOperation({ summary: 'Lister les conversations de l’utilisateur' })
+  async getConversations(@CurrentUser('id') userId: string) {
+    return this.messagingService.findAllConversations(userId);
+  }
+
   @Post('conversations')
   @ApiOperation({ summary: 'Créer une conversation directe ou de groupe' })
   async createConversation(

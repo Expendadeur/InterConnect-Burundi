@@ -14,6 +14,13 @@ export class MessagingService {
     private readonly messageRepo: Repository<Message>,
   ) {}
 
+  async findAllConversations(userId: string): Promise<Conversation[]> {
+    return this.conversationRepo.find({
+      order: { updatedAt: 'DESC' },
+      take: 50,
+    });
+  }
+
   async createConversation(name?: string, isGroup = false, createdBy?: string): Promise<Conversation> {
     const conv = this.conversationRepo.create({ name, isGroup, createdBy });
     return this.conversationRepo.save(conv);
