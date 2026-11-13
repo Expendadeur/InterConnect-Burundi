@@ -50,12 +50,16 @@ export class PostsService {
         data.map(async (post) => {
           if (post.originalLanguage !== targetLang) {
             try {
-              const translatedContent = await this.translationService.translate(
-                post.content,
-                post.originalLanguage,
-                targetLang,
-              );
-              return { ...post, content: translatedContent };
+              // CORRECTION TS2554 : translate() attend un seul argument (TranslateDto),
+              // et non trois arguments positionnels.
+              const result = await this.translationService.translate({
+                text: post.content,
+                sourceLanguage: post.originalLanguage,
+                targetLanguage: targetLang,
+              });
+              // CORRECTION TS2322 : translate() retourne un TranslationResult ;
+              // le texte traduit se trouve dans translatedText.
+              return { ...post, content: result.translatedText };
             } catch (err) {
               this.logger.warn(
                 `Translation failed for post ${post.id}: ${err.message}`,
@@ -84,11 +88,13 @@ export class PostsService {
 
     if (targetLang && post.originalLanguage !== targetLang) {
       try {
-        post.content = await this.translationService.translate(
-          post.content,
-          post.originalLanguage,
-          targetLang,
-        );
+        // CORRECTION TS2554 + TS2322 : même correction que dans findAll().
+        const result = await this.translationService.translate({
+          text: post.content,
+          sourceLanguage: post.originalLanguage,
+          targetLanguage: targetLang,
+        });
+        post.content = result.translatedText;
       } catch {
         // Return original content if translation fails
       }

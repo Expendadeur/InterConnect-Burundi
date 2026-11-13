@@ -11,6 +11,8 @@ import {
 import { ApiProperty } from '@nestjs/swagger';
 import { User } from '../../users/entities/user.entity';
 import { Comment } from '../../comments/entities/comment.entity';
+// CORRECTION TS2339 : import de l'entité PostTranslation pour la relation inverse
+import { PostTranslation } from './post-translation.entity';
 
 export enum PostType {
   TEXT = 'text',
@@ -89,4 +91,9 @@ export class Post {
 
   @OneToMany(() => Comment, (comment) => comment.post)
   comments: Comment[];
+
+  // CORRECTION TS2339 : relation inverse de PostTranslation.post
+  // (requise par `(post) => post.translations` dans post-translation.entity.ts)
+  @OneToMany(() => PostTranslation, (translation) => translation.post)
+  translations: PostTranslation[];
 }
