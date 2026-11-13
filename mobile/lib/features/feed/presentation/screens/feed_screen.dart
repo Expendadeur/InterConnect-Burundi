@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -22,6 +23,20 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   File? _pickedMediaFile;
   String _selectedLanguage = 'rn';
   String _selectedPostType = 'text';
+
+  ImageProvider? _getAvatarImage(String? avatarUrl) {
+    if (avatarUrl == null || avatarUrl.isEmpty) return null;
+    if (avatarUrl.startsWith('data:image')) {
+      try {
+        final commaIdx = avatarUrl.indexOf(',');
+        final base64Str = commaIdx != -1 ? avatarUrl.substring(commaIdx + 1) : avatarUrl;
+        return MemoryImage(base64Decode(base64Str));
+      } catch (_) {
+        return null;
+      }
+    }
+    return NetworkImage(avatarUrl);
+  }
 
   @override
   void initState() {
@@ -392,9 +407,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
             icon: CircleAvatar(
               radius: 14,
               backgroundColor: AppColors.primaryLight.withOpacity(0.2),
-              backgroundImage: user?.avatarUrl != null
-                  ? NetworkImage(user!.avatarUrl!)
-                  : null,
+              backgroundImage: _getAvatarImage(user?.avatarUrl),
               child: user?.avatarUrl == null
                   ? Text(
                       user?.displayName.isNotEmpty == true
@@ -434,9 +447,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                         CircleAvatar(
                           radius: 18,
                           backgroundColor: AppColors.primaryLight.withOpacity(0.2),
-                          backgroundImage: user?.avatarUrl != null
-                              ? NetworkImage(user!.avatarUrl!)
-                              : null,
+                          backgroundImage: _getAvatarImage(user?.avatarUrl),
                           child: user?.avatarUrl == null
                               ? Text(
                                   user?.displayName.isNotEmpty == true
@@ -532,9 +543,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                                   CircleAvatar(
                                     radius: 26,
                                     backgroundColor: AppColors.primary.withOpacity(0.1),
-                                    backgroundImage: u.avatarUrl != null
-                                        ? NetworkImage(u.avatarUrl!)
-                                        : null,
+                                    backgroundImage: _getAvatarImage(u.avatarUrl),
                                     child: u.avatarUrl == null
                                         ? Text(
                                             u.displayName.isNotEmpty

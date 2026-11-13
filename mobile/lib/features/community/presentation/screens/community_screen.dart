@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -6,6 +7,20 @@ import '../providers/community_provider.dart';
 
 class CommunityScreen extends ConsumerWidget {
   const CommunityScreen({super.key});
+
+  ImageProvider? _getAvatarImage(String? avatarUrl) {
+    if (avatarUrl == null || avatarUrl.isEmpty) return null;
+    if (avatarUrl.startsWith('data:image')) {
+      try {
+        final commaIdx = avatarUrl.indexOf(',');
+        final base64Str = commaIdx != -1 ? avatarUrl.substring(commaIdx + 1) : avatarUrl;
+        return MemoryImage(base64Decode(base64Str));
+      } catch (_) {
+        return null;
+      }
+    }
+    return NetworkImage(avatarUrl);
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -82,9 +97,7 @@ class CommunityScreen extends ConsumerWidget {
                                   CircleAvatar(
                                     radius: 24,
                                     backgroundColor: AppColors.primary.withOpacity(0.12),
-                                    backgroundImage: user.avatarUrl != null
-                                        ? NetworkImage(user.avatarUrl!)
-                                        : null,
+                                    backgroundImage: _getAvatarImage(user.avatarUrl),
                                     child: user.avatarUrl == null
                                         ? Text(
                                             user.displayName.isNotEmpty
@@ -140,7 +153,7 @@ class CommunityScreen extends ConsumerWidget {
                                 ],
                               ),
                               subtitle: Text(
-                                user.bio ?? '@${user.username} • En ligne',
+                                user.bio ?? '@${user.username}',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),

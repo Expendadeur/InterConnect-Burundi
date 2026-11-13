@@ -34,14 +34,16 @@ export class PostsController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Récupérer le fil des publications avec pagination' })
+  @ApiOperation({ summary: 'Récupérer le fil des publications avec pagination et traduction automatique' })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'lang', required: false, type: String })
   async findAll(
     @Query('page') page = 1,
     @Query('limit') limit = 20,
+    @Query('lang') lang?: string,
   ) {
-    return this.postsService.findAll(+page, +limit);
+    return this.postsService.findAll(+page, +limit, lang);
   }
 
   @Get(':id')
@@ -94,4 +96,3 @@ export class PostsController {
     return { message: 'Post successfully deleted' };
   }
 }
-

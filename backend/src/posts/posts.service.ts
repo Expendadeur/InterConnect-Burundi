@@ -9,6 +9,7 @@ import { Post } from './entities/post.entity';
 import { PostTranslation } from './entities/post-translation.entity';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
+import { TranslationService } from '../translation/translation.service';
 
 @Injectable()
 export class PostsService {
@@ -17,6 +18,7 @@ export class PostsService {
     private readonly postsRepository: Repository<Post>,
     @InjectRepository(PostTranslation)
     private readonly translationsRepository: Repository<PostTranslation>,
+    private readonly translationService: TranslationService,
   ) {}
 
   async create(authorId: string, dto: CreatePostDto): Promise<Post> {
@@ -27,7 +29,7 @@ export class PostsService {
     return this.postsRepository.save(post);
   }
 
-  async findAll(page = 1, limit = 20): Promise<{ data: Post[]; total: number; page: number; totalPages: number }> {
+  async findAll(page = 1, limit = 20, targetLang?: string): Promise<{ data: any[]; total: number; page: number; totalPages: number }> {
     const skip = (page - 1) * limit;
     const [data, total] = await this.postsRepository.findAndCount({
       relations: ['author', 'translations'],
@@ -36,8 +38,44 @@ export class PostsService {
       take: limit,
     });
 
+    const lang = (targetLang || 'fr').toLowerCase();
+
+    // Traduction automatique instantanée côté serveur pour TOUTES les publications
+    const translatedPosts = await Promise.all(
+      data.map(async (post) => {
+        let translatedText = post.content;
+        const postLang = (post.originalLanguage || 'fr').toLowerCase();
+
+        if (postLang !== lang && post.content) {
+          // Chercher si la traduction existe déjà en cache DB
+          const cached = post.translations?.find((t) => t.targetLanguage.toLowerCase() === lang);
+          if (cached) {
+            translatedText = cached.translatedContent;
+          } else {
+            try {
+              const res = await this.translationService.translate({
+                text: post.content,
+                sourceLanguage: postLang,
+                targetLanguage: lang,
+              });
+              if (res?.translatedText) {
+                translatedText = res.translatedText;
+                // Sauvegarder la traduction en cache DB sans bloquer
+                this.saveTranslation(post.id, lang, translatedText, res.provider).catch(() => {});
+              }
+            } catch (_) {}
+          }
+        }
+
+        return {
+          ...post,
+          translatedContent: translatedText,
+        };
+      }),
+    );
+
     return {
-      data,
+      data: translatedPosts,
       total,
       page,
       totalPages: Math.ceil(total / limit),

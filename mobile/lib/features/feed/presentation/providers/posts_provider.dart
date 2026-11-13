@@ -28,7 +28,8 @@ class PostsNotifier extends StateNotifier<PostsState> {
   Future<void> fetchPosts() async {
     state = PostsState(posts: state.posts, isLoading: true);
     try {
-      final res = await _apiClient.dio.get('/posts?limit=50');
+      // Envoie la langue de l'utilisateur pour recevoir directement les contenus traduits par le serveur
+      final res = await _apiClient.dio.get('/posts?limit=50&lang=$_userLanguage');
       List<dynamic> rawList = [];
       if (res.data is Map && res.data['data'] != null) {
         rawList = res.data['data'];
@@ -39,7 +40,7 @@ class PostsNotifier extends StateNotifier<PostsState> {
       final list = rawList.map((item) => PostModel.fromJson(item)).toList();
       state = PostsState(posts: list, isLoading: false);
 
-      // Traduction automatique transparente vers la langue de l'utilisateur
+      // Sécurité client : traduction en arrière-plan immédiate si non déjà traduite
       _autoTranslateAll(list);
     } catch (e) {
       state = PostsState(posts: state.posts, isLoading: false, error: 'Impossible de charger les posts');
@@ -48,9 +49,10 @@ class PostsNotifier extends StateNotifier<PostsState> {
 
   Future<void> _autoTranslateAll(List<PostModel> posts) async {
     for (final post in posts) {
-      if (post.originalLanguage.toLowerCase() != _userLanguage.toLowerCase() &&
-          post.translatedContent == null) {
-        _translateInBackground(post);
+      if (post.translatedContent == null || post.translatedContent == post.content) {
+        if (post.originalLanguage.toLowerCase() != _userLanguage.toLowerCase()) {
+          _translateInBackground(post);
+        }
       }
     }
   }

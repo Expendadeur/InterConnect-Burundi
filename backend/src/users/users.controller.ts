@@ -30,12 +30,12 @@ import { User } from './entities/user.entity';
 
 @ApiTags('users')
 @ApiBearerAuth('access-token')
-@UseGuards(JwtAuthGuard)
 @UseInterceptors(ClassSerializerInterceptor)
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Get('me')
   @ApiOperation({ summary: 'Obtenir le profil de l\'utilisateur connecté' })
   @ApiResponse({ status: 200, description: 'Profil retourné', type: User })
@@ -43,6 +43,7 @@ export class UsersController {
     return user;
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch('me')
   @ApiOperation({ summary: 'Mettre à jour son propre profil' })
   @ApiResponse({ status: 200, description: 'Profil mis à jour', type: User })
@@ -53,13 +54,14 @@ export class UsersController {
     return this.usersService.updateProfile(user.id, dto);
   }
 
+  // Route publique pour permettre l'affichage de la communauté mondiale à tous les membres connectés ou en découverte
   @Get()
-  @ApiOperation({ summary: 'Lister tous les utilisateurs (admin/paginé)' })
+  @ApiOperation({ summary: 'Lister tous les membres de la communauté' })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+    @Query('limit', new DefaultValuePipe(100), ParseIntPipe) limit: number,
   ) {
     return this.usersService.findAll(page, Math.min(limit, 100));
   }
@@ -72,6 +74,7 @@ export class UsersController {
     return this.usersService.findById(id);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete('me')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Supprimer son propre compte' })
