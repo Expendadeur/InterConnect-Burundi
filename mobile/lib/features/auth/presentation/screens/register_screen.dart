@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -159,14 +160,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   Future<void> _handleRegister() async {
     if (!_formKey.currentState!.validate()) return;
 
-    // Pour l'instant, on utilise une URL par défaut si pas de photo uploadée
-    // (Upload réel vers Supabase Storage peut être ajouté plus tard)
     String? avatarUrl;
     if (_profilePhoto != null) {
-      // TODO: Upload vers Supabase Storage et récupérer l'URL publique
-      // Pour l'instant on utilise un placeholder DiceBear avec le username
-      final seed = _usernameController.text.trim();
-      avatarUrl = 'https://api.dicebear.com/7.x/avataaars/png?seed=$seed';
+      try {
+        final bytes = await _profilePhoto!.readAsBytes();
+        final base64String = base64Encode(bytes);
+        avatarUrl = 'data:image/jpeg;base64,$base64String';
+      } catch (_) {
+        avatarUrl = null;
+      }
     }
 
     final success = await ref.read(authProvider.notifier).register(

@@ -97,6 +97,7 @@ export class AuthService {
 
     const tokens = await this.generateTokens(user);
     await this.updateRefreshToken(user.id, tokens.refreshToken);
+    await this.usersService.setOnlineStatus(user.id, true);
 
     return {
       ...tokens,
@@ -106,6 +107,7 @@ export class AuthService {
 
   async logout(userId: string): Promise<void> {
     await this.usersService.updateRefreshTokenHash(userId, null);
+    await this.usersService.setOnlineStatus(userId, false);
   }
 
   private async generateTokens(user: User): Promise<{ accessToken: string; refreshToken: string }> {

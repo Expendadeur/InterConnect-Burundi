@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -56,9 +57,7 @@ class _PostCardState extends State<PostCard> {
                     CircleAvatar(
                       radius: 22,
                       backgroundColor: AppColors.primaryLight.withOpacity(0.2),
-                      backgroundImage: post.authorAvatar != null
-                          ? NetworkImage(post.authorAvatar!)
-                          : null,
+                      backgroundImage: _getAvatarImage(post.authorAvatar),
                       child: post.authorAvatar == null
                           ? Text(
                               post.authorName.isNotEmpty
@@ -413,6 +412,20 @@ class _PostCardState extends State<PostCard> {
     }
 
     return const SizedBox.shrink();
+  }
+
+  ImageProvider? _getAvatarImage(String? avatarUrl) {
+    if (avatarUrl == null || avatarUrl.isEmpty) return null;
+    if (avatarUrl.startsWith('data:image')) {
+      try {
+        final commaIdx = avatarUrl.indexOf(',');
+        final base64Str = commaIdx != -1 ? avatarUrl.substring(commaIdx + 1) : avatarUrl;
+        return MemoryImage(base64Decode(base64Str));
+      } catch (_) {
+        return null;
+      }
+    }
+    return NetworkImage(avatarUrl);
   }
 
   Widget _errorPlaceholder() {
