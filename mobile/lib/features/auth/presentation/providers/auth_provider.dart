@@ -6,8 +6,16 @@ import '../../../../core/network/api_client.dart';
 import '../../../../core/services/fcm_service.dart';
 import '../../data/models/user_model.dart';
 
-final apiClientProvider = Provider<ApiClient>((ref) => ApiClient());
+// CORRECTION : apiClientProvider etait defini ici ET dans core/network/api_client.dart,
+// ce qui provoquait l'erreur "imported from both". La definition dupliquee est supprimee ;
+// on re-exporte celle d'api_client.dart pour que les fichiers qui n'importent que
+// auth_provider.dart continuent d'y avoir acces (meme declaration = pas d'ambiguite).
+export '../../../../core/network/api_client.dart' show apiClientProvider;
 
+// CORRECTION : les clés de stockage étaient 'jwt_access_token' / 'jwt_refresh_token',
+// alors qu'AuthInterceptor et ApiClient lisent 'access_token' / 'refresh_token'.
+// Résultat : aucun en-tête Bearer n'était envoyé après la connexion (erreurs 401).
+// Les clés sont maintenant alignées.
 enum AuthStatus { initial, authenticated, unauthenticated, loading }
 
 class AuthState {
@@ -20,6 +28,10 @@ class AuthState {
     this.user,
     this.errorMessage,
   });
+
+  // CORRECTION : getters utilises par app_router.dart (isAuthenticated / isLoading).
+  bool get isAuthenticated => status == AuthStatus.authenticated;
+  bool get isLoading => status == AuthStatus.loading;
 
   factory AuthState.initial() => const AuthState(status: AuthStatus.initial);
   factory AuthState.loading() => const AuthState(status: AuthStatus.loading);
@@ -38,7 +50,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   Future<void> checkAuthStatus() async {
-    final token = await _storage.read(key: 'jwt_access_token');
+    final token = await _storage.read(key: 'access_token');
     if (token == null || token.isEmpty) {
       state = AuthState.unauthenticated();
       return;
@@ -77,12 +89,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
             'email': email,
             'password': password,
           })
-          .timeout(const Duration(seconds: 12));
+          // CORRECTION : 12 s était trop court pour un backend Render qui se réveille
+          // (démarrage à froid d'environ 1 minute) -> délai porté à 60 s.
+          .timeout(const Duration(seconds: 60));
 
       await _storage.write(
-          key: 'jwt_access_token', value: res.data['accessToken']);
+          key: 'access_token', value: res.data['accessToken']);
       await _storage.write(
-          key: 'jwt_refresh_token', value: res.data['refreshToken']);
+          key: 'refresh_token', value: res.data['refreshToken']);
 
       final user = UserModel.fromJson(res.data['user']);
       state = AuthState.authenticated(user);
@@ -142,12 +156,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
             if (nationalId != null && nationalId.isNotEmpty) 'nationalId': nationalId,
             if (country != null && country.isNotEmpty) 'country': country,
           })
-          .timeout(const Duration(seconds: 12));
+          // CORRECTION : 12 s était trop court pour un backend Render qui se réveille
+          // (démarrage à froid d'environ 1 minute) -> délai porté à 60 s.
+          .timeout(const Duration(seconds: 60));
 
       await _storage.write(
-          key: 'jwt_access_token', value: res.data['accessToken']);
+          key: 'access_token', value: res.data['accessToken']);
       await _storage.write(
-          key: 'jwt_refresh_token', value: res.data['refreshToken']);
+          key: 'refresh_token', value: res.data['refreshToken']);
 
       final user = UserModel.fromJson(res.data['user']);
       state = AuthState.authenticated(user);

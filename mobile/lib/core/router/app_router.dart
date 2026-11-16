@@ -7,6 +7,8 @@ import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/auth/presentation/screens/splash_screen.dart';
 import '../../features/calls/presentation/screens/call_screen.dart';
+// AJOUT : écran de la communauté
+import '../../features/community/presentation/screens/community_screen.dart';
 import '../../features/feed/presentation/screens/feed_screen.dart';
 import '../../features/messaging/presentation/screens/chat_screen.dart';
 import '../../features/messaging/presentation/screens/conversations_screen.dart';
@@ -76,6 +78,16 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             pageBuilder: (context, state) => CustomTransitionPage(
               key: state.pageKey,
               child: const FeedScreen(),
+              transitionsBuilder: _fadeTransition,
+            ),
+          ),
+          // AJOUT : route de la communauté (dans le shell, donc avec MainScaffold)
+          GoRoute(
+            path: '/community',
+            name: 'community',
+            pageBuilder: (context, state) => CustomTransitionPage(
+              key: state.pageKey,
+              child: const CommunityScreen(),
               transitionsBuilder: _fadeTransition,
             ),
           ),

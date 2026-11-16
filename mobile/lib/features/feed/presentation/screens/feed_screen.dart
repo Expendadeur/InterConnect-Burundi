@@ -470,7 +470,8 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(
-                                'À quoi pensez-vous, ${user?.firstName ?? "cher membre"} ?',
+                                // CORRECTION : UserEntity/UserModel n'a pas de firstName, on utilise displayName
+                                'À quoi pensez-vous, ${user?.displayName ?? "cher membre"} ?',
                                 style: TextStyle(color: Colors.grey.shade600, fontSize: 13),
                               ),
                             ),

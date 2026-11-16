@@ -1,0 +1,454 @@
+-DFLUTTER_ENGINE_REVISION=425cfb54d0 -DFLUTTER_DART_VERSION=3.11.4 -DFLUTTER_APP_FLAVOR= -Ddart.vm.profile=false -Ddart.vm.product=true
+--delete-tostring-package-uri=dart:ui --delete-tostring-package-uri=package:flutter --aot --tfa --target-os android --packages G:\UB\InterConnect
+Burundi\mobile\.dart_tool\package_config.json --output-dill G:\UB\InterConnect Burundi\mobile\.dart_tool\flutter_build\464cb057e14df409b575db64ef5ca25b\app.dill
+--depfile G:\UB\InterConnect Burundi\mobile\.dart_tool\flutter_build\464cb057e14df409b575db64ef5ca25b\kernel_snapshot_program.d --source
+file:///G:/UB/InterConnect%20Burundi/mobile/.dart_tool/flutter_build/dart_plugin_registrant.dart --source package:flutter/src/dart_plugin_registrant.dart
+-Dflutter.dart_plugin_registrant=file:///G:/UB/InterConnect%20Burundi/mobile/.dart_tool/flutter_build/dart_plugin_registrant.dart --verbosity=error
+package:interconnect_burundi/main.dart
+[+2603 ms] [+2616 ms] lib/core/router/app_router.dart:14:8: Error: Error when reading 'lib/shared/widgets/main_scaffold.dart': The system cannot find the file specified
+[  +47 ms] [        ] import '../../shared/widgets/main_scaffold.dart';
+[   +2 ms] [        ]        ^
+[+1241 ms] [+1348 ms] lib/features/auth/data/models/user_model.dart:1:8: Error: Error when reading 'lib/features/domain/entities/user_entity.dart': The system cannot
+find the path specified
+[   +3 ms] [        ] import '../../../domain/entities/user_entity.dart';
+[   +1 ms] [        ]        ^
+[+1797 ms] [+1799 ms] lib/features/auth/data/models/user_model.dart:3:25: Error: Type 'UserEntity' not found.
+[   +3 ms] [        ] class UserModel extends UserEntity {
+[   +3 ms] [        ]                         ^^^^^^^^^^
+[+2006 ms] [+1983 ms] lib/core/router/app_router.dart:71:45: Error: Method not found: 'MainScaffold'.
+[   +4 ms] [        ]         builder: (context, state, child) => MainScaffold(child: child),
+[   +3 ms] [        ]                                             ^^^^^^^^^^^^
+[   +2 ms] [   +2 ms] lib/core/router/app_router.dart:20:31: Error: The getter 'isAuthenticated' isn't defined for the type 'AuthState'.
+[   +4 ms] [        ]  - 'AuthState' is from 'package:interconnect_burundi/features/auth/presentation/providers/auth_provider.dart'
+('lib/features/auth/presentation/providers/auth_provider.dart').
+[   +3 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'isAuthenticated'.
+[   +3 ms] [        ]     authNotifier.value = next.isAuthenticated;
+[   +1 ms] [        ]                               ^^^^^^^^^^^^^^^
+[   +1 ms] [   +2 ms] lib/core/router/app_router.dart:27:54: Error: The getter 'isAuthenticated' isn't defined for the type 'AuthState'.
+[   +1 ms] [        ]  - 'AuthState' is from 'package:interconnect_burundi/features/auth/presentation/providers/auth_provider.dart'
+('lib/features/auth/presentation/providers/auth_provider.dart').
+[   +1 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'isAuthenticated'.
+[  +13 ms] [        ]       final isAuthenticated = ref.read(authProvider).isAuthenticated;
+[   +2 ms] [   +1 ms]                                                      ^^^^^^^^^^^^^^^
+[   +6 ms] [        ] lib/core/router/app_router.dart:28:48: Error: The getter 'isLoading' isn't defined for the type 'AuthState'.
+[   +2 ms] [        ]  - 'AuthState' is from 'package:interconnect_burundi/features/auth/presentation/providers/auth_provider.dart'
+('lib/features/auth/presentation/providers/auth_provider.dart').
+[   +3 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'isLoading'.
+[   +2 ms] [        ]       final isLoading = ref.read(authProvider).isLoading;
+[   +2 ms] [        ]                                                ^^^^^^^^^
+[   +5 ms] [  +22 ms] lib/features/messaging/presentation/screens/conversations_screen.dart:31:31: Error: 'apiClientProvider' is imported from both
+'package:interconnect_burundi/core/network/api_client.dart' and 'package:interconnect_burundi/features/auth/presentation/providers/auth_provider.dart'.
+[   +3 ms] [        ]   final apiClient = ref.watch(apiClientProvider);
+[   +2 ms] [        ]                               ^^^^^^^^^^^^^^^^^
+[   +2 ms] [        ] lib/features/messaging/presentation/screens/conversations_screen.dart:32:50: Error: The getter 'preferredLanguage' isn't defined for the type
+'UserModel'.
+[   +1 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +7 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'preferredLanguage'.
+[   +4 ms] [        ]   final userLang = ref.watch(authProvider).user?.preferredLanguage ?? 'fr';
+[   +3 ms] [        ]                                                  ^^^^^^^^^^^^^^^^^
+[ +103 ms] [ +138 ms] lib/features/community/presentation/providers/community_provider.dart:99:31: Error: 'apiClientProvider' is imported from both
+'package:interconnect_burundi/core/network/api_client.dart' and 'package:interconnect_burundi/features/auth/presentation/providers/auth_provider.dart'.
+[   +3 ms] [        ]   final apiClient = ref.watch(apiClientProvider);
+[   +2 ms] [        ]                               ^^^^^^^^^^^^^^^^^
+[   +1 ms] [        ] lib/features/feed/presentation/providers/posts_provider.dart:175:31: Error: 'apiClientProvider' is imported from both
+'package:interconnect_burundi/core/network/api_client.dart' and 'package:interconnect_burundi/features/auth/presentation/providers/auth_provider.dart'.
+[   +1 ms] [   +3 ms]   final apiClient = ref.watch(apiClientProvider);
+[   +1 ms] [        ]                               ^^^^^^^^^^^^^^^^^
+[   +1 ms] [        ] lib/features/feed/presentation/providers/posts_provider.dart:177:26: Error: The getter 'preferredLanguage' isn't defined for the type 'UserModel'.
+[   +1 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +8 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'preferredLanguage'.
+[   +2 ms] [        ]   final userLang = user?.preferredLanguage ?? 'fr';
+[   +1 ms] [        ]                          ^^^^^^^^^^^^^^^^^
+[   +1 ms] [        ] lib/features/messaging/presentation/providers/messaging_provider.dart:85:31: Error: 'apiClientProvider' is imported from both
+'package:interconnect_burundi/core/network/api_client.dart' and 'package:interconnect_burundi/features/auth/presentation/providers/auth_provider.dart'.
+[   +1 ms] [        ]   final apiClient = ref.watch(apiClientProvider);
+[   +1 ms] [        ]                               ^^^^^^^^^^^^^^^^^
+[   +5 ms] [        ] lib/features/messaging/presentation/providers/messaging_provider.dart:87:26: Error: The getter 'preferredLanguage' isn't defined for the type
+'UserModel'.
+[   +3 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +1 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'preferredLanguage'.
+[   +1 ms] [        ]   final userLang = user?.preferredLanguage ?? 'fr';
+[   +1 ms] [        ]                          ^^^^^^^^^^^^^^^^^
+[+4552 ms] [+4602 ms] lib/features/feed/presentation/screens/feed_screen.dart:45:31: Error: The getter 'preferredLanguage' isn't defined for the type 'UserModel'.
+[   +3 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +1 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'preferredLanguage'.
+[   +3 ms] [        ]     _selectedLanguage = user?.preferredLanguage ?? 'rn';
+[   +1 ms] [        ]                               ^^^^^^^^^^^^^^^^^
+[   +1 ms] [   +8 ms] lib/features/feed/presentation/screens/feed_screen.dart:410:54: Error: The getter 'avatarUrl' isn't defined for the type 'UserModel'.
+[   +1 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +5 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'avatarUrl'.
+[   +2 ms] [        ]               backgroundImage: _getAvatarImage(user?.avatarUrl),
+[   +1 ms] [        ]                                                      ^^^^^^^^^
+[   +1 ms] [        ] lib/features/feed/presentation/screens/feed_screen.dart:411:28: Error: The getter 'avatarUrl' isn't defined for the type 'UserModel'.
+[   +1 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +1 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'avatarUrl'.
+[   +1 ms] [        ]               child: user?.avatarUrl == null
+[   +1 ms] [        ]                            ^^^^^^^^^
+[   +3 ms] [        ] lib/features/feed/presentation/screens/feed_screen.dart:413:29: Error: The getter 'displayName' isn't defined for the type 'UserModel'.
+[   +4 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +1 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'displayName'.
+[   +1 ms] [        ]                       user?.displayName.isNotEmpty == true
+[   +1 ms] [        ]                             ^^^^^^^^^^^
+[   +1 ms] [        ] lib/features/feed/presentation/screens/feed_screen.dart:414:35: Error: The getter 'displayName' isn't defined for the type 'UserModel'.
+[   +1 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +3 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'displayName'.
+[   +3 ms] [        ]                           ? user!.displayName[0].toUpperCase()
+[   +2 ms] [        ]                                   ^^^^^^^^^^^
+[   +1 ms] [        ] lib/features/feed/presentation/screens/feed_screen.dart:421:59: Error: The getter 'id' isn't defined for the type 'UserModel'.
+[   +1 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +1 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'id'.
+[   +1 ms] [        ]             onPressed: () => context.go('/profile/${user?.id ?? "me"}'),
+[  +30 ms] [        ]                                                           ^^
+[   +1 ms] [        ] lib/features/feed/presentation/screens/feed_screen.dart:450:66: Error: The getter 'avatarUrl' isn't defined for the type 'UserModel'.
+[   +1 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +1 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'avatarUrl'.
+[   +1 ms] [        ]                           backgroundImage: _getAvatarImage(user?.avatarUrl),
+[   +1 ms] [        ]                                                                  ^^^^^^^^^
+[   +1 ms] [        ] lib/features/feed/presentation/screens/feed_screen.dart:451:40: Error: The getter 'avatarUrl' isn't defined for the type 'UserModel'.
+[   +2 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +2 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'avatarUrl'.
+[   +1 ms] [   +1 ms]                           child: user?.avatarUrl == null
+[   +1 ms] [        ]                                        ^^^^^^^^^
+[   +1 ms] [   +1 ms] lib/features/feed/presentation/screens/feed_screen.dart:453:41: Error: The getter 'displayName' isn't defined for the type 'UserModel'.
+[   +4 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +3 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'displayName'.
+[   +1 ms] [        ]                                   user?.displayName.isNotEmpty == true
+[   +2 ms] [        ]                                         ^^^^^^^^^^^
+[   +1 ms] [        ] lib/features/feed/presentation/screens/feed_screen.dart:454:47: Error: The getter 'displayName' isn't defined for the type 'UserModel'.
+[   +1 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +1 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'displayName'.
+[   +3 ms] [        ]                                       ? user!.displayName[0].toUpperCase()
+[   +3 ms] [        ]                                               ^^^^^^^^^^^
+[   +2 ms] [        ] lib/features/feed/presentation/screens/feed_screen.dart:473:62: Error: The getter 'firstName' isn't defined for the type 'UserModel'.
+[   +2 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +1 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'firstName'.
+[   +1 ms] [        ]                                 'À quoi pensez-vous, ${user?.firstName ?? "cher membre"} ?',
+[  +42 ms] [        ]                                                              ^^^^^^^^^
+[   +2 ms] [        ] lib/features/feed/presentation/screens/feed_screen.dart:546:72: Error: The getter 'avatarUrl' isn't defined for the type 'UserModel'.
+[   +2 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +2 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'avatarUrl'.
+[   +1 ms] [        ]                                     backgroundImage: _getAvatarImage(u.avatarUrl),
+[   +3 ms] [        ]                                                                        ^^^^^^^^^
+[   +1 ms] [        ] lib/features/feed/presentation/screens/feed_screen.dart:547:46: Error: The getter 'avatarUrl' isn't defined for the type 'UserModel'.
+[   +1 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +1 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'avatarUrl'.
+[   +1 ms] [        ]                                     child: u.avatarUrl == null
+[   +2 ms] [        ]                                              ^^^^^^^^^
+[   +4 ms] [        ] lib/features/feed/presentation/screens/feed_screen.dart:549:47: Error: The getter 'displayName' isn't defined for the type 'UserModel'.
+[   +2 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +1 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'displayName'.
+[   +1 ms] [        ]                                             u.displayName.isNotEmpty
+[   +1 ms] [        ]                                               ^^^^^^^^^^^
+[   +1 ms] [        ] lib/features/feed/presentation/screens/feed_screen.dart:550:53: Error: The getter 'displayName' isn't defined for the type 'UserModel'.
+[   +1 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +4 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'displayName'.
+[   +2 ms] [        ]                                                 ? u.displayName[0].toUpperCase()
+[   +1 ms] [        ]                                                     ^^^^^^^^^^^
+[   +1 ms] [        ] lib/features/feed/presentation/screens/feed_screen.dart:556:41: Error: The getter 'isOnline' isn't defined for the type 'UserModel'.
+[   +1 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +1 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'isOnline'.
+[   +1 ms] [        ]                                   if (u.isOnline)
+[   +1 ms] [        ]                                         ^^^^^^^^
+[   +1 ms] [        ] lib/features/feed/presentation/screens/feed_screen.dart:574:35: Error: The getter 'displayName' isn't defined for the type 'UserModel'.
+[   +5 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +2 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'displayName'.
+[   +1 ms] [        ]                                 u.displayName,
+[   +1 ms] [        ]                                   ^^^^^^^^^^^
+[   +1 ms] [        ] lib/features/feed/presentation/screens/feed_screen.dart:535:63: Error: The getter 'id' isn't defined for the type 'UserModel'.
+[   +1 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +6 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'id'.
+[   +3 ms] [        ]                         onTap: () => context.go('/profile/${u.id}'),
+[   +1 ms] [        ]                                                               ^^
+[   +1 ms] [        ] lib/features/messaging/presentation/screens/chat_screen.dart:36:51: Error: The getter 'preferredLanguage' isn't defined for the type 'UserModel'.
+[   +1 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +1 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'preferredLanguage'.
+[   +1 ms] [        ]     final userLang = ref.read(authProvider).user?.preferredLanguage ?? 'fr';
+[   +1 ms] [        ]                                                   ^^^^^^^^^^^^^^^^^
+[   +5 ms] [        ] lib/features/messaging/presentation/screens/chat_screen.dart:114:58: Error: The getter 'id' isn't defined for the type 'UserModel'.
+[   +3 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +1 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'id'.
+[   +1 ms] [        ]                       final isMe = msg.senderId == user?.id;
+[   +1 ms] [        ]                                                          ^^
+[   +1 ms] [   +5 ms] lib/features/messaging/presentation/screens/conversations_screen.dart:147:83: Error: The getter 'preferredLanguage' isn't defined for the type
+'UserModel'.
+[   +6 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +2 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'preferredLanguage'.
+[   +1 ms] [        ]                         if (conv.lastMessageLang != (ref.read(authProvider).user?.preferredLanguage ?? 'fr'))
+[   +1 ms] [        ]                                                                                   ^^^^^^^^^^^^^^^^^
+[   +1 ms] [   +3 ms] lib/features/profile/presentation/screens/profile_screen.dart:46:44: Error: The getter 'avatarUrl' isn't defined for the type 'UserModel'.
+[   +1 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +1 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'avatarUrl'.
+[  +34 ms] [        ]                     backgroundImage: user?.avatarUrl != null && user!.avatarUrl!.isNotEmpty
+[  +10 ms] [        ]                                            ^^^^^^^^^
+[   +2 ms] [        ] lib/features/profile/presentation/screens/profile_screen.dart:46:71: Error: The getter 'avatarUrl' isn't defined for the type 'UserModel'.
+[   +1 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +4 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'avatarUrl'.
+[   +1 ms] [        ]                     backgroundImage: user?.avatarUrl != null && user!.avatarUrl!.isNotEmpty
+[   +2 ms] [        ]                                                                       ^^^^^^^^^
+[   +2 ms] [        ] lib/features/profile/presentation/screens/profile_screen.dart:47:45: Error: The getter 'avatarUrl' isn't defined for the type 'UserModel'.
+[   +1 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +8 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'avatarUrl'.
+[   +1 ms] [        ]                         ? NetworkImage(user.avatarUrl!)
+[   +1 ms] [        ]                                             ^^^^^^^^^
+[   +1 ms] [        ] lib/features/profile/presentation/screens/profile_screen.dart:49:35: Error: The getter 'avatarUrl' isn't defined for the type 'UserModel'.
+[   +4 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +2 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'avatarUrl'.
+[   +5 ms] [        ]                     child: (user?.avatarUrl == null || user!.avatarUrl!.isEmpty)
+[   +1 ms] [        ]                                   ^^^^^^^^^
+[   +1 ms] [        ] lib/features/profile/presentation/screens/profile_screen.dart:49:62: Error: The getter 'avatarUrl' isn't defined for the type 'UserModel'.
+[   +2 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +1 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'avatarUrl'.
+[   +2 ms] [        ]                     child: (user?.avatarUrl == null || user!.avatarUrl!.isEmpty)
+[   +1 ms] [        ]                                                              ^^^^^^^^^
+[   +2 ms] [        ] lib/features/profile/presentation/screens/profile_screen.dart:51:35: Error: The getter 'displayName' isn't defined for the type 'UserModel'.
+[   +2 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +1 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'displayName'.
+[   +1 ms] [        ]                             user?.displayName.isNotEmpty == true
+[   +1 ms] [        ]                                   ^^^^^^^^^^^
+[   +1 ms] [        ] lib/features/profile/presentation/screens/profile_screen.dart:52:41: Error: The getter 'displayName' isn't defined for the type 'UserModel'.
+[   +1 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +1 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'displayName'.
+[   +1 ms] [        ]                                 ? user!.displayName[0].toUpperCase()
+[   +7 ms] [        ]                                         ^^^^^^^^^^^
+[   +2 ms] [        ] lib/features/profile/presentation/screens/profile_screen.dart:72:21: Error: The getter 'displayName' isn't defined for the type 'UserModel'.
+[   +1 ms] [   +1 ms]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +2 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'displayName'.
+[   +1 ms] [        ]               user?.displayName ?? 'Utilisateur',
+[   +4 ms] [        ]                     ^^^^^^^^^^^
+[   +1 ms] [        ] lib/features/profile/presentation/screens/profile_screen.dart:76:25: Error: The getter 'username' isn't defined for the type 'UserModel'.
+[   +3 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +1 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'username'.
+[   +1 ms] [        ]               '@${user?.username ?? "user"}',
+[   +1 ms] [        ]                         ^^^^^^^^
+[   +1 ms] [   +1 ms] lib/features/profile/presentation/screens/profile_screen.dart:93:44: Error: The getter 'email' isn't defined for the type 'UserModel'.
+[   +7 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +4 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'email'.
+[   +1 ms] [        ]                       subtitle: Text(user?.email ?? 'Non renseigné'),
+[ +142 ms] [        ]                                            ^^^^^
+[   +2 ms] [        ] lib/features/profile/presentation/screens/profile_screen.dart:99:44: Error: The getter 'phone' isn't defined for the type 'UserModel'.
+[   +2 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +2 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'phone'.
+[   +2 ms] [        ]                       subtitle: Text(user?.phone ?? 'Non renseigné'),
+[   +2 ms] [        ]                                            ^^^^^
+[   +6 ms] [        ] lib/features/profile/presentation/screens/profile_screen.dart:105:44: Error: The getter 'nationalId' isn't defined for the type 'UserModel'.
+[   +3 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +2 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'nationalId'.
+[   +2 ms] [        ]                       subtitle: Text(user?.nationalId ?? 'Non renseigné'),
+[   +1 ms] [        ]                                            ^^^^^^^^^^
+[   +5 ms] [        ] lib/features/profile/presentation/screens/profile_screen.dart:111:44: Error: The getter 'country' isn't defined for the type 'UserModel'.
+[   +1 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +3 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'country'.
+[   +1 ms] [        ]                       subtitle: Text(user?.country ?? 'Burundi'),
+[   +1 ms] [        ]                                            ^^^^^^^
+[   +1 ms] [        ] lib/features/profile/presentation/screens/profile_screen.dart:117:44: Error: The getter 'bio' isn't defined for the type 'UserModel'.
+[   +1 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +7 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'bio'.
+[   +1 ms] [        ]                       subtitle: Text(user?.bio ?? 'Aucune bio'),
+[   +1 ms] [        ]                                            ^^^
+[   +1 ms] [        ] lib/features/profile/presentation/screens/profile_screen.dart:123:44: Error: The getter 'preferredLanguage' isn't defined for the type
+'UserModel'.
+[   +1 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +1 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'preferredLanguage'.
+[   +1 ms] [        ]                       subtitle: Text(user?.preferredLanguage.toUpperCase() ?? 'FR'),
+[   +1 ms] [        ]                                            ^^^^^^^^^^^^^^^^^
+[+1235 ms] [+1822 ms] lib/features/auth/data/models/user_model.dart:42:13: Error: The getter 'id' isn't defined for the type 'UserModel'.
+[   +6 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +4 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'id'.
+[   +8 ms] [        ]       'id': id,
+[   +4 ms] [        ]             ^^
+[   +3 ms] [        ] lib/features/auth/data/models/user_model.dart:43:16: Error: The getter 'email' isn't defined for the type 'UserModel'.
+[   +5 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +4 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'email'.
+[   +2 ms] [        ]       'email': email,
+[   +2 ms] [        ]                ^^^^^
+[   +2 ms] [        ] lib/features/auth/data/models/user_model.dart:44:19: Error: The getter 'username' isn't defined for the type 'UserModel'.
+[   +2 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +6 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'username'.
+[   +3 ms] [        ]       'username': username,
+[   +2 ms] [        ]                   ^^^^^^^^
+[   +2 ms] [        ] lib/features/auth/data/models/user_model.dart:45:23: Error: The getter 'displayName' isn't defined for the type 'UserModel'.
+[   +2 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +5 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'displayName'.
+[   +3 ms] [        ]       'display_name': displayName,
+[   +2 ms] [        ]                       ^^^^^^^^^^^
+[   +1 ms] [        ] lib/features/auth/data/models/user_model.dart:46:21: Error: The getter 'avatarUrl' isn't defined for the type 'UserModel'.
+[   +1 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +1 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'avatarUrl'.
+[   +5 ms] [        ]       'avatar_url': avatarUrl,
+[   +3 ms] [        ]                     ^^^^^^^^^
+[   +1 ms] [        ] lib/features/auth/data/models/user_model.dart:47:14: Error: The getter 'bio' isn't defined for the type 'UserModel'.
+[   +2 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +2 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'bio'.
+[   +1 ms] [        ]       'bio': bio,
+[   +5 ms] [        ]              ^^^
+[   +3 ms] [        ] lib/features/auth/data/models/user_model.dart:48:18: Error: The getter 'country' isn't defined for the type 'UserModel'.
+[   +1 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +1 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'country'.
+[   +1 ms] [        ]       'country': country,
+[   +1 ms] [        ]                  ^^^^^^^
+[   +1 ms] [        ] lib/features/auth/data/models/user_model.dart:49:16: Error: The getter 'phone' isn't defined for the type 'UserModel'.
+[   +1 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +4 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'phone'.
+[   +4 ms] [        ]       'phone': phone,
+[   +5 ms] [        ]                ^^^^^
+[   +2 ms] [        ] lib/features/auth/data/models/user_model.dart:50:22: Error: The getter 'nationalId' isn't defined for the type 'UserModel'.
+[   +8 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +2 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'nationalId'.
+[   +2 ms] [        ]       'national_id': nationalId,
+[   +1 ms] [        ]                      ^^^^^^^^^^
+[   +1 ms] [        ] lib/features/auth/data/models/user_model.dart:51:29: Error: The getter 'preferredLanguage' isn't defined for the type 'UserModel'.
+[   +3 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +7 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'preferredLanguage'.
+[   +2 ms] [        ]       'preferred_language': preferredLanguage,
+[   +1 ms] [        ]                             ^^^^^^^^^^^^^^^^^
+[   +1 ms] [        ] lib/features/auth/data/models/user_model.dart:52:22: Error: The getter 'isVerified' isn't defined for the type 'UserModel'.
+[   +7 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +3 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'isVerified'.
+[   +2 ms] [        ]       'is_verified': isVerified,
+[   +1 ms] [        ]                      ^^^^^^^^^^
+[   +1 ms] [        ] lib/features/auth/data/models/user_model.dart:53:20: Error: The getter 'isOnline' isn't defined for the type 'UserModel'.
+[   +6 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +1 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'isOnline'.
+[   +3 ms] [        ]       'is_online': isOnline,
+[   +1 ms] [        ]                    ^^^^^^^^
+[   +1 ms] [        ] lib/features/auth/data/models/user_model.dart:54:21: Error: The getter 'createdAt' isn't defined for the type 'UserModel'.
+[  +14 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +2 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'createdAt'.
+[   +6 ms] [        ]       'created_at': createdAt.toIso8601String(),
+[   +2 ms] [        ]                     ^^^^^^^^^
+[   +3 ms] [        ] lib/features/auth/data/models/user_model.dart:74:22: Error: The getter 'id' isn't defined for the type 'UserModel'.
+[   +1 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +1 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'id'.
+[   +1 ms] [        ]       id: id ?? this.id,
+[   +7 ms] [        ]                      ^^
+[   +1 ms] [        ] lib/features/auth/data/models/user_model.dart:75:28: Error: The getter 'email' isn't defined for the type 'UserModel'.
+[   +1 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +1 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'email'.
+[   +1 ms] [        ]       email: email ?? this.email,
+[   +1 ms] [        ]                            ^^^^^
+[   +1 ms] [        ] lib/features/auth/data/models/user_model.dart:76:34: Error: The getter 'username' isn't defined for the type 'UserModel'.
+[   +1 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[  +10 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'username'.
+[   +1 ms] [        ]       username: username ?? this.username,
+[   +1 ms] [        ]                                  ^^^^^^^^
+[   +1 ms] [        ] lib/features/auth/data/models/user_model.dart:77:40: Error: The getter 'displayName' isn't defined for the type 'UserModel'.
+[   +5 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +4 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'displayName'.
+[   +3 ms] [        ]       displayName: displayName ?? this.displayName,
+[   +1 ms] [        ]                                        ^^^^^^^^^^^
+[  +25 ms] [        ] lib/features/auth/data/models/user_model.dart:78:36: Error: The getter 'avatarUrl' isn't defined for the type 'UserModel'.
+[   +3 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +3 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'avatarUrl'.
+[   +1 ms] [        ]       avatarUrl: avatarUrl ?? this.avatarUrl,
+[   +1 ms] [        ]                                    ^^^^^^^^^
+[   +6 ms] [        ] lib/features/auth/data/models/user_model.dart:79:24: Error: The getter 'bio' isn't defined for the type 'UserModel'.
+[   +2 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +3 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'bio'.
+[   +1 ms] [        ]       bio: bio ?? this.bio,
+[   +1 ms] [        ]                        ^^^
+[   +1 ms] [        ] lib/features/auth/data/models/user_model.dart:80:32: Error: The getter 'country' isn't defined for the type 'UserModel'.
+[   +6 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +3 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'country'.
+[   +1 ms] [        ]       country: country ?? this.country,
+[   +1 ms] [        ]                                ^^^^^^^
+[   +1 ms] [        ] lib/features/auth/data/models/user_model.dart:81:28: Error: The getter 'phone' isn't defined for the type 'UserModel'.
+[   +1 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +6 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'phone'.
+[   +2 ms] [        ]       phone: phone ?? this.phone,
+[   +1 ms] [        ]                            ^^^^^
+[   +1 ms] [        ] lib/features/auth/data/models/user_model.dart:82:38: Error: The getter 'nationalId' isn't defined for the type 'UserModel'.
+[   +1 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +1 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'nationalId'.
+[   +1 ms] [        ]       nationalId: nationalId ?? this.nationalId,
+[   +5 ms] [        ]                                      ^^^^^^^^^^
+[   +3 ms] [        ] lib/features/auth/data/models/user_model.dart:83:52: Error: The getter 'preferredLanguage' isn't defined for the type 'UserModel'.
+[   +1 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +1 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'preferredLanguage'.
+[   +1 ms] [        ]       preferredLanguage: preferredLanguage ?? this.preferredLanguage,
+[   +1 ms] [        ]                                                    ^^^^^^^^^^^^^^^^^
+[   +6 ms] [        ] lib/features/auth/data/models/user_model.dart:84:38: Error: The getter 'isVerified' isn't defined for the type 'UserModel'.
+[   +3 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +1 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'isVerified'.
+[   +1 ms] [        ]       isVerified: isVerified ?? this.isVerified,
+[   +1 ms] [        ]                                      ^^^^^^^^^^
+[   +1 ms] [        ] lib/features/auth/data/models/user_model.dart:85:34: Error: The getter 'isOnline' isn't defined for the type 'UserModel'.
+[   +1 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +7 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'isOnline'.
+[   +1 ms] [        ]       isOnline: isOnline ?? this.isOnline,
+[   +1 ms] [        ]                                  ^^^^^^^^
+[   +1 ms] [        ] lib/features/auth/data/models/user_model.dart:86:36: Error: The getter 'createdAt' isn't defined for the type 'UserModel'.
+[   +1 ms] [ +169 ms]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +1 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'createdAt'.
+[   +5 ms] [        ]       createdAt: createdAt ?? this.createdAt,
+[   +3 ms] [        ]                                    ^^^^^^^^^
+[   +1 ms] [        ] lib/features/community/presentation/providers/community_provider.dart:24:13: Error: The getter 'displayName' isn't defined for the type
+'UserModel'.
+[   +1 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +1 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'displayName'.
+[   +1 ms] [        ]           u.displayName.toLowerCase().contains(searchQuery.toLowerCase()) ||
+[   +1 ms] [        ]             ^^^^^^^^^^^
+[   +7 ms] [        ] lib/features/community/presentation/providers/community_provider.dart:25:13: Error: The getter 'username' isn't defined for the type 'UserModel'.
+[   +2 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +1 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'username'.
+[   +1 ms] [        ]           u.username.toLowerCase().contains(searchQuery.toLowerCase()) ||
+[   +1 ms] [        ]             ^^^^^^^^
+[   +1 ms] [        ] lib/features/community/presentation/providers/community_provider.dart:26:14: Error: The getter 'bio' isn't defined for the type 'UserModel'.
+[   +3 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +3 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'bio'.
+[   +1 ms] [        ]           (u.bio != null && u.bio!.toLowerCase().contains(searchQuery.toLowerCase()));
+[   +1 ms] [        ]              ^^^
+[   +1 ms] [        ] lib/features/community/presentation/providers/community_provider.dart:26:31: Error: The getter 'bio' isn't defined for the type 'UserModel'.
+[   +1 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +1 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'bio'.
+[   +1 ms] [        ]           (u.bio != null && u.bio!.toLowerCase().contains(searchQuery.toLowerCase()));
+[   +1 ms] [        ]                               ^^^
+[   +7 ms] [        ] lib/features/community/presentation/providers/community_provider.dart:29:13: Error: The getter 'preferredLanguage' isn't defined for the type
+'UserModel'.
+[   +2 ms] [        ]  - 'UserModel' is from 'package:interconnect_burundi/features/auth/data/models/user_model.dart' ('lib/features/auth/data/models/user_model.dart').
+[   +1 ms] [        ] Try correcting the name to the name of an existing getter, or defining a getter or field named 'preferredLanguage'.
+[   +1 ms] [        ]           u.preferredLanguage.toLowerCase() == selectedLanguageFilter.toLowerCase();
+[   +1 ms] [        ]             ^^^^^^^^^^^^^^^^^
+[+15027 ms] [+15351 ms] Persisting file store
+[+1681 ms] [  +65 ms] Done persisting file store
+[ +312 ms] [+1866 ms] Target kernel_snapshot_program failed: Exception
+[+1298 ms]            #0      KernelSnapshot.build (package:flutter_tools/src/build_system/targets/common.dart:289:7)
+[   +3 ms]            <asynchronous suspension>
+[   +3 ms]            #1      _BuildInstance._invokeInternal (package:flutter_tools/src/build_system/build_system.dart:937:9)
+[   +1 ms]            <asynchronous suspension>
+[   +1 ms]            #2      Future.wait.<anonymous closure> (dart:async/future.dart:546:21)
+[   +1 ms]            <asynchronous suspension>
+[   +1 ms]            #3      _BuildInstance.invokeTarget (package:flutter_tools/src/build_system/build_system.dart:875:32)
+[   +1 ms]            <asynchronous suspension>
+[   +1 ms]            #4      Future.wait.<anonymous closure> (dart:async/future.dart:546:21)
+[   +7 ms]            <asynchronous suspension>
+[   +1 ms]            #5      _BuildInstance.invokeTarget (package:flutter_tools/src/build_system/build_system.dart:875:32)
+[   +1 ms]            <asynchronous suspension>
+[   +1 ms]            #6      Future.wait.<anonymous closure> (dart:async/future.dart:546:21)
+[   +1 ms]            <asynchronous suspension>
+[   +1 ms]            #7      _BuildInstance.invokeTarget (package:flutter_tools/src/build_system/build_system.dart:875:32)
+[   +1 ms]            <asynchronous suspension>
+[   +3 ms]            #8      FlutterBuildSystem.build (package:flutter_tools/src/build_system/build_system.dart:684:16)
+[   +5 ms]            <asynchronous suspension>
+[   +1 ms]            #9      AssembleCommand.runCommand (package:flutter_tools/src/commands/assemble.dart:365:32)
+[   +1 ms]            <asynchronous suspension>
+[   +1 ms]            #10     FlutterCommand.run.<anonymous closure> (package:flutter_tools/src/runner/flutter_command.dart:1590:27)
+[   +1 ms]            <asynchronous suspension>
+[   +1 ms]            #11     AppContext.run.<anonymous closure> (package:flutter_tools/src/base/context.dart:154:19)
+[   +1 ms]            <asynchronous suspension>
+[   +8 ms]            #12     CommandRunner.runCommand (package:args/command_runner.dart:212:13)
+[   +1 ms]            <asynchronous suspension>
+[   +1 ms]            #13     FlutterCommandRunner.runCommand.<anonymous closure> (package:flutter_tools/src/runner/flutter_command_runner.dart:496:9)
+[   +1 ms]            <asynchronous suspension>
+[   +1 ms]            #14     AppContext.run.<anonymous closure> (package:flutter_tools/src/base/context.dart:154:19)
+[   +1 ms]            <asynchronous suspension>
+[   +6 ms]            #15     FlutterCommandRunner.runCommand (package:flutter_tools/src/runner/flutter_command_runner.dart:431:5)
+[   +3 ms]            <asynchronous suspension>
+[   +1 ms]            #16     FlutterCommandRunner.run.<anonymous closure> (package:flutter_tools/src/runner/flutter_command_runner.dart:307:33)
+[   +1 ms]            <asynchronous suspension>
+[   +1 ms]            #17     run.<anonymous closure>.<anonymous closure> (package:flutter_tools/runner.dart:104:11)
+[   +1 ms]            <asynchronous suspension>
+[   +5 ms]            #18     AppContext.run.<anonymous closure> (package:flutter_tools/src/base/context.dart:154:19)
+[   +3 ms]            <asynchronous suspension>
+[   +1 ms]            #19     main (package:flutter_tools/executable.dart:103:3)
+[   +1 ms]            <asynchronous suspension>
+[+1009 ms] [+2406 ms] "flutter assemble" took 117,934ms.

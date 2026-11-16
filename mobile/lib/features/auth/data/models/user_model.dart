@@ -1,4 +1,6 @@
-import '../../../domain/entities/user_entity.dart';
+// CORRECTION : le chemin pointait vers lib/features/domain/... (inexistant).
+// user_entity.dart se trouve dans lib/features/auth/domain/entities/.
+import '../../domain/entities/user_entity.dart';
 
 class UserModel extends UserEntity {
   const UserModel({
