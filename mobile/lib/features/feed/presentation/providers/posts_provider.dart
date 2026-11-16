@@ -48,9 +48,11 @@ class PostsNotifier extends StateNotifier<PostsState> {
   }
 
   Future<void> _autoTranslateAll(List<PostModel> posts) async {
+    final targetLang = _userLanguage.toLowerCase().trim();
     for (final post in posts) {
-      if (post.translatedContent == null || post.translatedContent == post.content) {
-        if (post.originalLanguage.toLowerCase() != _userLanguage.toLowerCase()) {
+      final postLang = post.originalLanguage.toLowerCase().trim();
+      if (postLang != targetLang) {
+        if (post.translatedContent == null || post.translatedContent == post.content) {
           _translateInBackground(post);
         }
       }
@@ -59,15 +61,20 @@ class PostsNotifier extends StateNotifier<PostsState> {
 
   Future<void> _translateInBackground(PostModel post) async {
     try {
+      final targetLang = _userLanguage.toLowerCase().trim();
+      final sourceLang = post.originalLanguage.isNotEmpty
+          ? post.originalLanguage.toLowerCase().trim()
+          : 'auto';
+
       final res = await _apiClient.dio.post('/translation/translate', data: {
         'text': post.content,
-        'targetLanguage': _userLanguage,
-        'sourceLanguage': post.originalLanguage,
+        'targetLanguage': targetLang,
+        'sourceLanguage': sourceLang,
       });
 
       final translated = res.data['translatedText'] ?? res.data['translated_text'];
-      if (translated != null && translated.toString().isNotEmpty) {
-        post.translatedContent = translated.toString();
+      if (translated != null && translated.toString().trim().isNotEmpty) {
+        post.translatedContent = translated.toString().trim();
         state = PostsState(posts: [...state.posts], isLoading: false);
       }
     } catch (_) {}

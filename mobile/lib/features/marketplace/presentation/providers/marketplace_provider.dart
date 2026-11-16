@@ -118,8 +118,10 @@ class MarketplaceNotifier extends StateNotifier<MarketplaceState> {
         try {
           final res = await _apiClient.dio.post('/translation', data: {
             'text': '${p.title} --- ${p.description}',
-            'source_language': p.originalLanguage,
+            'targetLanguage': userLang,
             'target_language': userLang,
+            'sourceLanguage': p.originalLanguage,
+            'source_language': p.originalLanguage,
           });
 
           final trans = res.data['translated_text'] ?? res.data['translatedText'];

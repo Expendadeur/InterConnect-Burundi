@@ -12,8 +12,9 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 
 class CallScreen extends ConsumerStatefulWidget {
   final String roomName;
+  final UserModel? extraUser;
 
-  const CallScreen({super.key, required this.roomName});
+  const CallScreen({super.key, required this.roomName, this.extraUser});
 
   @override
   ConsumerState<CallScreen> createState() => _CallScreenState();
@@ -26,8 +27,11 @@ class _CallScreenState extends ConsumerState<CallScreen> with SingleTickerProvid
   bool _isVideoOff = false;
   bool _isSpeakerOn = false;
 
-  bool _isRinging = true;
+  bool _isOffline = false;
+  bool _isRinging = false;
   bool _isConnected = false;
+  bool _noAnswer = false;
+
   int _callDurationSeconds = 0;
   Timer? _callTimer;
   Timer? _ringingTimer;
@@ -54,13 +58,18 @@ class _CallScreenState extends ConsumerState<CallScreen> with SingleTickerProvid
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
 
-    _loadInterlocutor();
+    if (widget.extraUser != null) {
+      _interlocutor = widget.extraUser;
+      _isLoading = false;
+      _handleCallFlow();
+    } else {
+      _loadInterlocutor();
+    }
   }
 
   Future<void> _loadInterlocutor() async {
     final targetId = _cleanTargetId;
 
-    // Si le targetId est un UUID ou ID utilisateur
     try {
       final apiClient = ref.read(apiClientProvider);
       final res = await apiClient.dio.get('/users/$targetId');
@@ -72,6 +81,32 @@ class _CallScreenState extends ConsumerState<CallScreen> with SingleTickerProvid
         _handleCallFlow();
       }
     } catch (_) {
+      // Si l'ID était un ID de conversation, tente d'extraire l'interlocuteur des messages
+      try {
+        final apiClient = ref.read(apiClientProvider);
+        final convRes = await apiClient.dio.get('/messaging/conversations/$targetId/messages');
+        final raw = convRes.data as List<dynamic>? ?? [];
+        final currentUserId = ref.read(authProvider).user?.id;
+        String? otherUserId;
+        for (final m in raw) {
+          if (m['senderId'] != null && m['senderId'] != currentUserId) {
+            otherUserId = m['senderId'].toString();
+            break;
+          }
+        }
+        if (otherUserId != null) {
+          final userRes = await apiClient.dio.get('/users/$otherUserId');
+          if (mounted) {
+            setState(() {
+              _interlocutor = UserModel.fromJson(userRes.data);
+              _isLoading = false;
+            });
+            _handleCallFlow();
+            return;
+          }
+        }
+      } catch (_) {}
+
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -82,39 +117,57 @@ class _CallScreenState extends ConsumerState<CallScreen> with SingleTickerProvid
   }
 
   void _handleCallFlow() {
-    // Si l'interlocuteur est hors ligne
-    if (_interlocutor != null && !_interlocutor!.isOnline) {
+    // ─── 1. CAS : INTERLOCUTEUR INTROUVABLE OU HORS LIGNE ───
+    if (_interlocutor == null || !_interlocutor!.isOnline) {
       RingtoneService.stop();
-      setState(() {
-        _isRinging = false;
-        _isConnected = false;
-      });
-      // Vibration courte pour signaler que le correspondant est hors ligne
+      _ringingTimer?.cancel();
+      _callTimer?.cancel();
+      if (mounted) {
+        setState(() {
+          _isOffline = true;
+          _isRinging = false;
+          _isConnected = false;
+          _noAnswer = false;
+        });
+      }
       HapticFeedback.heavyImpact();
       return;
     }
 
-    // Déclencher la vraie sonnerie native du téléphone
+    // ─── 2. CAS : INTERLOCUTEUR EN LIGNE ───
+    // Démarrer la sonnerie native
+    if (mounted) {
+      setState(() {
+        _isOffline = false;
+        _isRinging = true;
+        _isConnected = false;
+        _noAnswer = false;
+      });
+    }
+
     RingtoneService.play();
 
-    // Interlocuteur en ligne ou appel normal : sonnerie pendant quelques secondes puis connexion
-    _ringingTimer = Timer.periodic(const Duration(milliseconds: 1200), (timer) {
-      if (!mounted || _isConnected) {
+    // Sonnerie jusqu'à 30 secondes max en attente de décrochage (JAMAIS d'auto-connexion factice !)
+    _ringingTimer?.cancel();
+    int seconds = 0;
+    _ringingTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      seconds++;
+      if (!mounted) {
         timer.cancel();
         RingtoneService.stop();
         return;
       }
       HapticFeedback.lightImpact();
 
-      if (timer.tick >= 4) {
+      if (seconds >= 30) {
         timer.cancel();
         RingtoneService.stop();
         if (mounted) {
           setState(() {
             _isRinging = false;
-            _isConnected = true;
+            _isConnected = false;
+            _noAnswer = true;
           });
-          _startCallTimer();
         }
       }
     });
@@ -162,7 +215,7 @@ class _CallScreenState extends ConsumerState<CallScreen> with SingleTickerProvid
   @override
   Widget build(BuildContext context) {
     final displayName = _interlocutor?.displayName ?? 'Correspondant';
-    final isOffline = _interlocutor != null && !_interlocutor!.isOnline;
+    final isOffline = _isOffline || (_interlocutor != null && !_interlocutor!.isOnline);
     final profileImage = _getProfileImage(_interlocutor?.avatarUrl);
     final initials = displayName.isNotEmpty ? displayName[0].toUpperCase() : 'U';
 
@@ -178,7 +231,14 @@ class _CallScreenState extends ConsumerState<CallScreen> with SingleTickerProvid
                 children: [
                   IconButton(
                     icon: const Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () => context.canPop() ? context.pop() : context.go('/feed'),
+                    onPressed: () {
+                      RingtoneService.stop();
+                      if (context.canPop()) {
+                        context.pop();
+                      } else {
+                        context.go('/feed');
+                      }
+                    },
                   ),
                   const SizedBox(width: 8),
                   Expanded(
@@ -200,9 +260,15 @@ class _CallScreenState extends ConsumerState<CallScreen> with SingleTickerProvid
                               ? 'Hors ligne'
                               : _isConnected
                                   ? 'En communication'
-                                  : 'Appel vocal sécurisé',
+                                  : _noAnswer
+                                      ? 'Aucune réponse'
+                                      : 'Appel vocal sécurisé',
                           style: TextStyle(
-                            color: isOffline ? Colors.orangeAccent : Colors.white70,
+                            color: isOffline
+                                ? Colors.orangeAccent
+                                : _isConnected
+                                    ? AppColors.success
+                                    : Colors.white70,
                             fontSize: 12,
                           ),
                         ),
@@ -240,7 +306,7 @@ class _CallScreenState extends ConsumerState<CallScreen> with SingleTickerProvid
                   Stack(
                     alignment: Alignment.center,
                     children: [
-                      // Onde pulsante pendant la sonnerie
+                      // Onde pulsante pendant la sonnerie uniquement si en ligne et sonne
                       if (_isRinging && !isOffline)
                         AnimatedBuilder(
                           animation: _pulseAnimation,
@@ -267,7 +333,9 @@ class _CallScreenState extends ConsumerState<CallScreen> with SingleTickerProvid
                                 ? Colors.orangeAccent
                                 : _isConnected
                                     ? AppColors.success
-                                    : AppColors.primary,
+                                    : _noAnswer
+                                        ? Colors.grey
+                                        : AppColors.primary,
                             width: 3.5,
                           ),
                         ),
@@ -300,16 +368,20 @@ class _CallScreenState extends ConsumerState<CallScreen> with SingleTickerProvid
                                 ? Colors.orangeAccent
                                 : _isConnected
                                     ? const Color(0xFF1EB53A)
-                                    : AppColors.primary,
+                                    : _noAnswer
+                                        ? Colors.grey
+                                        : AppColors.primary,
                             shape: BoxShape.circle,
                             border: Border.all(color: const Color(0xFF14171A), width: 3),
                           ),
                           child: Icon(
                             isOffline
-                                ? Icons.close
+                                ? Icons.wifi_off
                                 : _isConnected
                                     ? Icons.check
-                                    : Icons.phone,
+                                    : _noAnswer
+                                        ? Icons.phone_missed
+                                        : Icons.phone,
                             size: 11,
                             color: Colors.white,
                           ),
@@ -330,14 +402,14 @@ class _CallScreenState extends ConsumerState<CallScreen> with SingleTickerProvid
                     ),
                   ),
 
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
 
                   // ─── ÉTATS DE L'APPEL ───
                   if (isOffline) ...[
                     // CAS HORS LIGNE
                     Container(
                       margin: const EdgeInsets.symmetric(horizontal: 32),
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                       decoration: BoxDecoration(
                         color: Colors.orangeAccent.withOpacity(0.12),
                         borderRadius: BorderRadius.circular(16),
@@ -348,30 +420,31 @@ class _CallScreenState extends ConsumerState<CallScreen> with SingleTickerProvid
                           const Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.wifi_off, color: Colors.orangeAccent, size: 16),
+                              Icon(Icons.wifi_off, color: Colors.orangeAccent, size: 18),
                               SizedBox(width: 8),
                               Text(
                                 'Interlocuteur hors ligne',
                                 style: TextStyle(
                                   color: Colors.orangeAccent,
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 14,
+                                  fontSize: 15,
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 8),
                           Text(
                             '$displayName n\'est pas connecté à Internet pour le moment.',
                             textAlign: TextAlign.center,
-                            style: const TextStyle(color: Colors.white70, fontSize: 12),
+                            style: const TextStyle(color: Colors.white70, fontSize: 13),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 18),
                     ElevatedButton.icon(
                       onPressed: () {
+                        RingtoneService.stop();
                         if (_interlocutor != null) {
                           context.go('/chat/${_interlocutor!.id}');
                         } else {
@@ -387,8 +460,79 @@ class _CallScreenState extends ConsumerState<CallScreen> with SingleTickerProvid
                         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                       ),
                     ),
+                  ] else if (_noAnswer) ...[
+                    // CAS AUCUNE RÉPONSE
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 32),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.white10,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.white24),
+                      ),
+                      child: Column(
+                        children: [
+                          const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.phone_missed, color: Colors.white70, size: 18),
+                              SizedBox(width: 8),
+                              Text(
+                                'Aucune réponse',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            '$displayName ne répond pas pour l\'instant.',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(color: Colors.white70, fontSize: 13),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        OutlinedButton.icon(
+                          onPressed: () => _handleCallFlow(),
+                          icon: const Icon(Icons.refresh, color: Colors.white),
+                          label: const Text('Rappeler', style: TextStyle(color: Colors.white)),
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Colors.white30),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            RingtoneService.stop();
+                            if (_interlocutor != null) {
+                              context.go('/chat/${_interlocutor!.id}');
+                            } else {
+                              context.pop();
+                            }
+                          },
+                          icon: const Icon(Icons.chat_bubble_outline, color: Colors.white),
+                          label: const Text('Message'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                          ),
+                        ),
+                      ],
+                    ),
                   ] else if (_isConnected) ...[
-                    // CAS CONNECTÉ
+                    // CAS CONNECTÉ (si communication acceptée)
                     Text(
                       _formatDuration(_callDurationSeconds),
                       style: const TextStyle(
@@ -438,18 +582,24 @@ class _CallScreenState extends ConsumerState<CallScreen> with SingleTickerProvid
                     label: _isMuted ? 'Activé' : 'Muet',
                     isActive: _isMuted,
                     activeColor: Colors.orange,
-                    onTap: () => setState(() => _isMuted = !_isMuted),
+                    onTap: isOffline ? () {} : () => setState(() => _isMuted = !_isMuted),
                   ),
 
-                  // Bouton Raccrocher (Rouge)
+                  // Bouton Raccrocher / Quitter (Rouge)
                   Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       GestureDetector(
                         onTap: () {
                           RingtoneService.stop();
+                          _ringingTimer?.cancel();
+                          _callTimer?.cancel();
                           HapticFeedback.mediumImpact();
-                          context.canPop() ? context.pop() : context.go('/feed');
+                          if (context.canPop()) {
+                            context.pop();
+                          } else {
+                            context.go('/feed');
+                          }
                         },
                         child: Container(
                           width: 68,
@@ -469,14 +619,14 @@ class _CallScreenState extends ConsumerState<CallScreen> with SingleTickerProvid
                         ),
                       ),
                       const SizedBox(height: 8),
-                      const Text(
-                        'Raccrocher',
-                        style: TextStyle(color: Colors.white70, fontSize: 12),
+                      Text(
+                        isOffline || _noAnswer ? 'Fermer' : 'Raccrocher',
+                        style: const TextStyle(color: Colors.white70, fontSize: 12),
                       ),
                     ],
                   ),
 
-                  // Haut-parleur
+                  // Haut-parleur (Bascule uniquement le son du haut-parleur — N'altère JAMAIS l'état de connexion !)
                   _buildCallButton(
                     icon: _isSpeakerOn ? Icons.volume_up : Icons.volume_down,
                     label: 'Haut-parleur',

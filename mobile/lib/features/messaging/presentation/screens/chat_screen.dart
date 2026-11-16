@@ -30,17 +30,32 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   Future<void> _loadInterlocutor() async {
-    // Si l'ID est un UUID utilisateur, charge le profil complet
+    // Si l'ID est un UUID utilisateur direct
     if (!widget.conversationId.startsWith('conv-')) {
-      try {
-        final apiClient = ref.read(apiClientProvider);
-        final res = await apiClient.dio.get('/users/${widget.conversationId}');
-        if (mounted) {
-          setState(() {
-            _interlocutor = UserModel.fromJson(res.data);
-          });
-        }
-      } catch (_) {}
+      await _loadInterlocutorById(widget.conversationId);
+    }
+  }
+
+  Future<void> _loadInterlocutorById(String userId) async {
+    try {
+      final apiClient = ref.read(apiClientProvider);
+      final res = await apiClient.dio.get('/users/$userId');
+      if (mounted) {
+        setState(() {
+          _interlocutor = UserModel.fromJson(res.data);
+        });
+      }
+    } catch (_) {}
+  }
+
+  void _detectInterlocutorFromMessages(List<dynamic> messages) {
+    if (_interlocutor != null || messages.isEmpty) return;
+    final myId = ref.read(authProvider).user?.id;
+    for (final m in messages) {
+      if (m.senderId != null && m.senderId.toString().isNotEmpty && m.senderId != myId) {
+        _loadInterlocutorById(m.senderId.toString());
+        break;
+      }
     }
   }
 
@@ -194,16 +209,25 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           IconButton(
             icon: const Icon(Icons.call, color: AppColors.success),
             tooltip: 'Appel vocal',
-            onPressed: () => context.go('/call/${widget.conversationId}'),
+            onPressed: () {
+              final targetId = _interlocutor?.id ?? widget.conversationId;
+              context.go('/call/$targetId', extra: _interlocutor);
+            },
           ),
           IconButton(
             icon: const Icon(Icons.videocam, color: AppColors.primary),
             tooltip: 'Appel vidéo',
-            onPressed: () => context.go('/call/${widget.conversationId}'),
+            onPressed: () {
+              final targetId = _interlocutor?.id ?? widget.conversationId;
+              context.go('/call/$targetId', extra: _interlocutor);
+            },
           ),
         ],
       ),
-      body: Column(
+      body: Builder(
+        builder: (context) {
+          _detectInterlocutorFromMessages(state.messages);
+          return Column(
         children: [
           Expanded(
             child: state.isLoading && state.messages.isEmpty
@@ -315,7 +339,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             ),
           ),
         ],
-      ),
+      );
+    }),
     );
   }
 }

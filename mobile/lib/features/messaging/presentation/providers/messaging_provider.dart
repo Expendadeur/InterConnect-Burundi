@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/network/api_client.dart';
-import '../../../auth/data/models/user_model.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../data/models/message_model.dart';
 
@@ -14,8 +13,9 @@ class MessagingState {
 class MessagingNotifier extends StateNotifier<MessagingState> {
   final ApiClient _apiClient;
   final String _userLanguage;
+  final String? _currentUserId;
 
-  MessagingNotifier(this._apiClient, this._userLanguage)
+  MessagingNotifier(this._apiClient, this._userLanguage, this._currentUserId)
       : super(const MessagingState(messages: []));
 
   Future<void> loadMessages(String conversationId) async {
@@ -29,17 +29,22 @@ class MessagingNotifier extends StateNotifier<MessagingState> {
           [];
       state = MessagingState(messages: list, isLoading: false);
 
-      // Traduction automatique INVISIBLE de tous les messages reçus
+      // Traduction automatique INVISIBLE de tous les messages reçus dans la langue connectée
       _autoTranslateAll(list);
     } catch (_) {
       state = MessagingState(messages: state.messages, isLoading: false);
     }
   }
 
-  /// Traduit tous les messages entrants qui sont dans une autre langue — aucun clic requis.
+  /// Traduit tous les messages entrants qui sont dans une autre langue
   Future<void> _autoTranslateAll(List<MessageModel> messages) async {
+    final targetLang = _userLanguage.toLowerCase().trim();
     for (final msg in messages) {
-      if (msg.originalLanguage != _userLanguage && msg.translatedContent == null) {
+      final msgLang = msg.originalLanguage.toLowerCase().trim();
+      final isFromOther = _currentUserId != null && msg.senderId != _currentUserId;
+
+      // Si le message provient d'un autre utilisateur ou dans une autre langue, et pas encore traduit
+      if ((isFromOther || msgLang != targetLang) && msg.translatedContent == null) {
         _translateMessageInBackground(msg);
       }
     }
@@ -47,13 +52,20 @@ class MessagingNotifier extends StateNotifier<MessagingState> {
 
   Future<void> _translateMessageInBackground(MessageModel msg) async {
     try {
+      final targetLang = _userLanguage.toLowerCase().trim();
+      final sourceLang = msg.originalLanguage.isNotEmpty ? msg.originalLanguage.toLowerCase().trim() : 'auto';
+
       final res = await _apiClient.dio.post('/translation/translate', data: {
         'text': msg.content,
-        'targetLanguage': _userLanguage,
-        'sourceLanguage': msg.originalLanguage,
+        'targetLanguage': targetLang,
+        'sourceLanguage': sourceLang,
       });
-      msg.translatedContent = res.data['translatedText'] ?? res.data['translated_text'];
-      state = MessagingState(messages: [...state.messages], isLoading: false);
+
+      final translated = res.data['translatedText'] ?? res.data['translated_text'];
+      if (translated != null && translated.toString().trim().isNotEmpty) {
+        msg.translatedContent = translated.toString().trim();
+        state = MessagingState(messages: [...state.messages], isLoading: false);
+      }
     } catch (_) {}
   }
 
@@ -85,5 +97,6 @@ final messagingProvider =
   final apiClient = ref.watch(apiClientProvider);
   final user = ref.watch(authProvider).user;
   final userLang = user?.preferredLanguage ?? 'fr';
-  return MessagingNotifier(apiClient, userLang);
+  final currentUserId = user?.id;
+  return MessagingNotifier(apiClient, userLang, currentUserId);
 });

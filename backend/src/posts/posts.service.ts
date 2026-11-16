@@ -46,20 +46,18 @@ export class PostsService {
     });
 
     if (targetLang) {
+      const normalizedTarget = targetLang.toLowerCase().trim();
       const translated = await Promise.allSettled(
         data.map(async (post) => {
-          if (post.originalLanguage !== targetLang) {
+          const postLang = (post.originalLanguage || 'fr').toLowerCase().trim();
+          if (postLang !== normalizedTarget) {
             try {
-              // CORRECTION TS2554 : translate() attend un seul argument (TranslateDto),
-              // et non trois arguments positionnels.
               const result = await this.translationService.translate({
                 text: post.content,
-                sourceLanguage: post.originalLanguage,
-                targetLanguage: targetLang,
+                sourceLanguage: postLang,
+                targetLanguage: normalizedTarget,
               });
-              // CORRECTION TS2322 : translate() retourne un TranslationResult ;
-              // le texte traduit se trouve dans translatedText.
-              return { ...post, content: result.translatedText };
+              return { ...post, content: result.translatedText || post.content };
             } catch (err) {
               this.logger.warn(
                 `Translation failed for post ${post.id}: ${err.message}`,
@@ -86,17 +84,20 @@ export class PostsService {
     const post = await this.postsRepository.findOne({ where: { id } });
     if (!post) throw new NotFoundException(`Post ${id} not found`);
 
-    if (targetLang && post.originalLanguage !== targetLang) {
-      try {
-        // CORRECTION TS2554 + TS2322 : même correction que dans findAll().
-        const result = await this.translationService.translate({
-          text: post.content,
-          sourceLanguage: post.originalLanguage,
-          targetLanguage: targetLang,
-        });
-        post.content = result.translatedText;
-      } catch {
-        // Return original content if translation fails
+    if (targetLang) {
+      const normalizedTarget = targetLang.toLowerCase().trim();
+      const postLang = (post.originalLanguage || 'fr').toLowerCase().trim();
+      if (postLang !== normalizedTarget) {
+        try {
+          const result = await this.translationService.translate({
+            text: post.content,
+            sourceLanguage: postLang,
+            targetLanguage: normalizedTarget,
+          });
+          post.content = result.translatedText || post.content;
+        } catch {
+          // Return original content if translation fails
+        }
       }
     }
 

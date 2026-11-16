@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/auth/data/models/user_model.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
@@ -131,6 +132,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           key: state.pageKey,
           child: CallScreen(
             roomName: state.pathParameters['roomName'] ?? '',
+            extraUser: state.extra is UserModel ? state.extra as UserModel : null,
           ),
           transitionsBuilder: _fadeTransition,
         ),
