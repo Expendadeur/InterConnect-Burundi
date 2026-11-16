@@ -46,8 +46,11 @@ export class MessagingController {
 
   @Get('conversations/:id/messages')
   @ApiOperation({ summary: 'Récupérer l’historique des messages d’une conversation' })
-  async getMessages(@Param('id', ParseUUIDPipe) id: string) {
-    return this.messagingService.getMessages(id);
+  async getMessages(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser('id') userId: string,
+  ) {
+    return this.messagingService.getMessages(id, userId);
   }
 
   @Post('conversations/:id/read')

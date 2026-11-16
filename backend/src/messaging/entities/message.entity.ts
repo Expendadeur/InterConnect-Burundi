@@ -33,6 +33,9 @@ export class Message {
   @Column({ name: 'sender_id' })
   senderId: string;
 
+  @Column({ name: 'recipient_id', nullable: true })
+  recipientId: string;
+
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'sender_id' })
   sender: User;

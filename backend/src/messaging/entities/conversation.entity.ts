@@ -25,6 +25,9 @@ export class Conversation {
   @Column({ name: 'created_by', nullable: true })
   createdBy: string;
 
+  @Column({ name: 'participant_ids', type: 'text', nullable: true })
+  participantIds: string;
+
   @OneToMany(() => Message, (message) => message.conversation)
   messages: Message[];
 

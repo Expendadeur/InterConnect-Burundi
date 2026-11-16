@@ -19,6 +19,10 @@ export class TranslationService {
   private readonly logger = new Logger(TranslationService.name);
   private readonly aiServiceUrl: string;
 
+  // ─── CACHE EN MÉMOIRE POUR ÉVITER TOUT RATE LIMIT (429) ───
+  private readonly cache = new Map<string, TranslationResult>();
+  private readonly maxCacheSize = 5000;
+
   constructor(
     private readonly configService: ConfigService,
     private readonly httpService: HttpService,
@@ -34,7 +38,6 @@ export class TranslationService {
     const rawTarget = (dto.targetLanguage || dto.target_language || 'fr').toLowerCase().trim();
     const rawSource = (dto.sourceLanguage || dto.source_language || 'auto').toLowerCase().trim();
 
-    // Normalisation des codes de langue (ex: burundi -> rn, english -> en)
     const targetLang = this.normalizeLangCode(rawTarget);
     const sourceLang = rawSource === 'auto' ? 'auto' : this.normalizeLangCode(rawSource);
 
@@ -48,7 +51,6 @@ export class TranslationService {
       };
     }
 
-    // Si les langues source et cible sont identiques et connues
     if (sourceLang !== 'auto' && sourceLang === targetLang) {
       return {
         originalText: text,
@@ -59,16 +61,49 @@ export class TranslationService {
       };
     }
 
-    // ─── 1. MOTEUR UNIVERSEL GOOGLE GTX (Support natif de rn, rw, fr, en, sw) ───
-    try {
-      // Pour le Kirundi, Google utilise 'rn' ou 'rw' (Kinyarwanda/Kirundi)
-      const gtxTarget = targetLang === 'rn' ? 'rn' : targetLang;
-      const gtxSource = sourceLang === 'auto' ? 'auto' : sourceLang;
-      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${gtxSource}&tl=${gtxTarget}&dt=t&q=${encodeURIComponent(text)}`;
+    // ─── VÉRIFICATION DU CACHE EN MÉMOIRE (0ms, 0 appel réseau) ───
+    const cacheKey = `${sourceLang}:${targetLang}:${text.toLowerCase().trim()}`;
+    if (this.cache.has(cacheKey)) {
+      const cached = this.cache.get(cacheKey)!;
+      return { ...cached, cached: true };
+    }
 
+    // ─── 1. MOTEUR GOOGLE DICT (clients5.google.com - Séparé et sans blocage 429) ───
+    try {
+      const dictUrl = `https://clients5.google.com/translate_a/t?client=dict-chrome-ex&sl=${sourceLang}&tl=${targetLang}&q=${encodeURIComponent(text)}`;
+      const dictRes = await firstValueFrom(
+        this.httpService.get(dictUrl, {
+          timeout: 3000,
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/120.0.0.0 Safari/537.36',
+          },
+        }),
+      );
+
+      if (Array.isArray(dictRes?.data) && Array.isArray(dictRes.data[0])) {
+        const translatedStr = dictRes.data[0][0];
+        const detectedSrc = dictRes.data[0][1] || sourceLang;
+        if (translatedStr && typeof translatedStr === 'string' && translatedStr.trim().length > 0) {
+          const result: TranslationResult = {
+            originalText: text,
+            translatedText: translatedStr.trim(),
+            translated_text: translatedStr.trim(),
+            sourceLanguage: detectedSrc,
+            targetLanguage: targetLang,
+            provider: 'google-dict',
+          };
+          this.setCache(cacheKey, result);
+          return result;
+        }
+      }
+    } catch (_) {}
+
+    // ─── 2. MOTEUR GOOGLE GTX (translate.googleapis.com) ───
+    try {
+      const gtxUrl = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLang}&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
       const response = await firstValueFrom(
-        this.httpService.get(url, {
-          timeout: 4000,
+        this.httpService.get(gtxUrl, {
+          timeout: 3500,
           headers: {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
           },
@@ -83,21 +118,21 @@ export class TranslationService {
         const detectedSource = response.data[2] || sourceLang;
 
         if (translatedChunks && translatedChunks.trim().length > 0) {
-          return {
+          const result: TranslationResult = {
             originalText: text,
             translatedText: translatedChunks.trim(),
             translated_text: translatedChunks.trim(),
             sourceLanguage: detectedSource,
             targetLanguage: targetLang,
-            provider: 'google-universal-ai',
+            provider: 'google-gtx',
           };
+          this.setCache(cacheKey, result);
+          return result;
         }
       }
-    } catch (gtxErr) {
-      this.logger.warn(`Google Universal translation error: ${gtxErr?.message}`);
-    }
+    } catch (_) {}
 
-    // ─── 2. TENTER LE MICROSERVICE PYTHON FASTAPI SUR RENDER ───
+    // ─── 3. MICROSERVICE PYTHON FASTAPI SUR RENDER ───
     try {
       if (this.aiServiceUrl && this.aiServiceUrl.startsWith('http')) {
         const response = await firstValueFrom(
@@ -108,12 +143,12 @@ export class TranslationService {
               source_language: sourceLang,
               target_language: targetLang,
             },
-            { timeout: 3500 },
+            { timeout: 3000 },
           ),
         );
 
         if (response?.data?.translated_text && response.data.translated_text !== text) {
-          return {
+          const result: TranslationResult = {
             originalText: text,
             translatedText: response.data.translated_text,
             translated_text: response.data.translated_text,
@@ -121,23 +156,25 @@ export class TranslationService {
             targetLanguage: targetLang,
             provider: 'fastapi-ai',
           };
+          this.setCache(cacheKey, result);
+          return result;
         }
       }
     } catch (_) {}
 
-    // ─── 3. TENTER MYMEMORY API PUBLIQUE ───
+    // ─── 4. MYMEMORY API PUBLIQUE ───
     try {
       const src = sourceLang === 'auto' ? 'fr' : sourceLang;
       const langPair = `${src}|${targetLang}`;
       const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${langPair}`;
-      const res = await firstValueFrom(this.httpService.get(url, { timeout: 3000 }));
+      const res = await firstValueFrom(this.httpService.get(url, { timeout: 2500 }));
       const translated = res?.data?.responseData?.translatedText;
       if (
         translated &&
         !translated.includes('MYMEMORY WARNING') &&
         translated.trim().toLowerCase() !== text.toLowerCase()
       ) {
-        return {
+        const result: TranslationResult = {
           originalText: text,
           translatedText: translated.trim(),
           translated_text: translated.trim(),
@@ -145,12 +182,14 @@ export class TranslationService {
           targetLanguage: targetLang,
           provider: 'mymemory-cloud',
         };
+        this.setCache(cacheKey, result);
+        return result;
       }
     } catch (_) {}
 
-    // ─── 4. DICTIONNAIRE LOCAL COMPLET MULTILINGUE (RN, FR, EN, SW) ───
+    // ─── 5. DICTIONNAIRE LOCAL ENRICHI TOUTES LANGUES (RN, FR, EN, SW) ───
     const localTranslation = this.translateLocally(text, sourceLang, targetLang);
-    return {
+    const result: TranslationResult = {
       originalText: text,
       translatedText: localTranslation,
       translated_text: localTranslation,
@@ -158,6 +197,16 @@ export class TranslationService {
       targetLanguage: targetLang,
       provider: 'interconnect-lexicon',
     };
+    this.setCache(cacheKey, result);
+    return result;
+  }
+
+  private setCache(key: string, val: TranslationResult) {
+    if (this.cache.size >= this.maxCacheSize) {
+      const firstKey = this.cache.keys().next().value;
+      if (firstKey) this.cache.delete(firstKey);
+    }
+    this.cache.set(key, val);
   }
 
   private normalizeLangCode(code: string): string {
@@ -170,7 +219,7 @@ export class TranslationService {
   }
 
   private translateLocally(text: string, source: string, target: string): string {
-    const lower = text.toLowerCase();
+    const lower = text.toLowerCase().trim();
 
     // ─── VERS L'ANGLAIS (target == 'en') ───
     if (target === 'en') {
@@ -189,15 +238,21 @@ export class TranslationService {
       if (lower.includes('twishimiye') || lower.includes('gusangira') || lower.includes('heureux de partager')) {
         return 'Happy to share this moment with you on our platform InterConnect.';
       }
-      if (lower.includes('bonjour') || lower.includes('salut')) {
-        return 'Hello, welcome to InterConnect Burundi!';
+      if (lower === 'bonjour' || lower === 'salut' || lower === 'hello' || lower === 'hi') return 'Hello!';
+      if (lower.includes('comment vas-tu') || lower.includes('comment tu vas') || lower.includes('ca va') || lower.includes('amakuru')) {
+        return 'How are you doing?';
       }
-      if (lower.includes('comment vas-tu') || lower.includes('comment ca va') || lower.includes('amakuru')) {
-        return 'How are you doing today?';
+      if (lower.includes('je vais bien') || lower.includes('tres bien') || lower.includes('ni meza')) {
+        return 'I am doing well, thank you!';
       }
-      if (lower.includes('merci') || lower.includes('murakoze')) {
-        return 'Thank you very much!';
+      if (lower.includes('merci') || lower.includes('murakoze')) return 'Thank you very much!';
+      if (lower.includes('au revoir') || lower.includes('n\'agasaga') || lower.includes('a bientot')) {
+        return 'Goodbye, see you soon!';
       }
+      if (lower.includes('oui') || lower === 'ego') return 'Yes';
+      if (lower.includes('non') || lower === 'oya') return 'No';
+      if (lower.includes('bonne nuit') || lower.includes('ijoro ryiza')) return 'Good night!';
+      if (lower.includes('bon courage') || lower.includes('komera')) return 'Stay strong!';
     }
 
     // ─── VERS LE FRANÇAIS (target == 'fr') ───
@@ -217,15 +272,18 @@ export class TranslationService {
       if (lower.includes('twishimiye') || lower.includes('gusangira')) {
         return 'Heureux de partager avec vous ce moment sur notre plateforme InterConnect.';
       }
-      if (lower.includes('amakuru') || lower.includes('bite')) {
-        return 'Comment allez-vous aujourd\'hui ?';
+      if (lower.includes('amakuru') || lower.includes('bite') || lower.includes('how are you')) {
+        return 'Comment allez-vous ?';
       }
-      if (lower.includes('murakoze')) {
+      if (lower.includes('murakoze') || lower.includes('thank you') || lower.includes('asante')) {
         return 'Merci beaucoup !';
       }
-      if (lower.includes('hello') || lower.includes('good morning')) {
-        return 'Bonjour et bienvenue sur InterConnect Burundi !';
+      if (lower === 'hello' || lower === 'hi' || lower === 'good morning') return 'Bonjour !';
+      if (lower.includes('i am fine') || lower.includes('doing well') || lower.includes('ni meza')) {
+        return 'Je vais très bien, merci !';
       }
+      if (lower.includes('goodbye') || lower.includes('see you')) return 'Au revoir, à bientôt !';
+      if (lower.includes('good night') || lower.includes('ijoro ryiza')) return 'Bonne nuit !';
     }
 
     // ─── VERS LE KIRUNDI (target == 'rn') ───
@@ -240,7 +298,7 @@ export class TranslationService {
         return 'Umviriza uyu muziki gakondo w\'inanga n\'indirimbo z\'amahoro zo mu Burundi. Akanya keza cane ko kuruhuka ! 🎵🎶';
       }
       if (lower.includes('bonjour') || lower.includes('hello') || lower.includes('hi')) {
-        return 'Amahoro, mwese mwahaye ikaze kuri InterConnect Burundi !';
+        return 'Amahoro, ikaze kuri InterConnect Burundi !';
       }
       if (lower.includes('merci') || lower.includes('thank you')) {
         return 'Murakoze cane !';
@@ -248,6 +306,8 @@ export class TranslationService {
       if (lower.includes('comment') || lower.includes('how are you')) {
         return 'Amakuru ki mwese uyu musi ?';
       }
+      if (lower.includes('bien') || lower.includes('fine')) return 'Ni meza cane !';
+      if (lower.includes('au revoir') || lower.includes('goodbye')) return 'N\'agasaga, tuzosubira vuba !';
     }
 
     // ─── VERS LE SWAHILI (target == 'sw') ───
@@ -261,6 +321,7 @@ export class TranslationService {
       if (lower.includes('coucher de soleil') || lower.includes('sunset')) {
         return 'Machweo mazuri ya jua kando ya Ziwa Tanganyika huko Bujumbura. 🌅🇧🇮';
       }
+      if (lower.includes('comment') || lower.includes('how are you')) return 'Habari gani?';
     }
 
     return text;

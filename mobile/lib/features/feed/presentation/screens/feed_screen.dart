@@ -520,18 +520,22 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
               ),
             ),
 
-            // Membres en ligne (Cercle vert)
-            if (communityState.users.isNotEmpty)
-              SliverToBoxAdapter(
-                child: Container(
-                  height: 96,
-                  margin: const EdgeInsets.only(bottom: 8),
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    itemCount: communityState.users.length,
-                    itemBuilder: (context, index) {
-                      final u = communityState.users[index];
+            // Membres en ligne (Cercle vert) - L'utilisateur connecté est retiré de la liste
+            SliverToBoxAdapter(
+              child: Builder(
+                builder: (context) {
+                  final otherUsers = communityState.users.where((u) => u.id != currentUser?.id).toList();
+                  if (otherUsers.isEmpty) return const SizedBox.shrink();
+
+                  return Container(
+                    height: 96,
+                    margin: const EdgeInsets.only(bottom: 8),
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      itemCount: otherUsers.length,
+                      itemBuilder: (context, index) {
+                        final u = otherUsers[index];
                       return InkWell(
                         onTap: () => context.go('/profile/${u.id}'),
                         child: Container(
@@ -583,9 +587,10 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                         ),
                       );
                     },
-                  ),
-                ),
+                  );
+                },
               ),
+            ),
 
             // Fil des publications
             if (postsState.isLoading && postsState.posts.isEmpty)

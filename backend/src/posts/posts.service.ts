@@ -47,32 +47,25 @@ export class PostsService {
 
     if (targetLang) {
       const normalizedTarget = targetLang.toLowerCase().trim();
-      const translated = await Promise.allSettled(
-        data.map(async (post) => {
-          const postLang = (post.originalLanguage || 'fr').toLowerCase().trim();
-          if (postLang !== normalizedTarget) {
-            try {
-              const result = await this.translationService.translate({
-                text: post.content,
-                sourceLanguage: postLang,
-                targetLanguage: normalizedTarget,
-              });
-              return { ...post, content: result.translatedText || post.content };
-            } catch (err) {
-              this.logger.warn(
-                `Translation failed for post ${post.id}: ${err.message}`,
-                'PostsService',
-              );
-              return post;
-            }
-          }
-          return post;
-        }),
-      );
+      const translatedData: Post[] = [];
 
-      const translatedData = translated.map((result, index) =>
-        result.status === 'fulfilled' ? result.value : data[index],
-      ) as Post[];
+      for (const post of data) {
+        const postLang = (post.originalLanguage || 'fr').toLowerCase().trim();
+        if (postLang !== normalizedTarget) {
+          try {
+            const result = await this.translationService.translate({
+              text: post.content,
+              sourceLanguage: postLang,
+              targetLanguage: normalizedTarget,
+            });
+            translatedData.push({ ...post, content: result.translatedText || post.content });
+          } catch (err) {
+            translatedData.push(post);
+          }
+        } else {
+          translatedData.push(post);
+        }
+      }
 
       return { data: translatedData, total };
     }

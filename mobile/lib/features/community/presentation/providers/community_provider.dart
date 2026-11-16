@@ -9,6 +9,7 @@ class CommunityState {
   final String? error;
   final String searchQuery;
   final String selectedLanguageFilter;
+  final String? currentUserId;
 
   const CommunityState({
     required this.users,
@@ -16,10 +17,14 @@ class CommunityState {
     this.error,
     this.searchQuery = '',
     this.selectedLanguageFilter = 'all',
+    this.currentUserId,
   });
 
   List<UserModel> get filteredUsers {
     return users.where((u) {
+      // Exclure l'utilisateur connecté
+      if (currentUserId != null && u.id == currentUserId) return false;
+
       final matchesQuery = searchQuery.isEmpty ||
           u.displayName.toLowerCase().contains(searchQuery.toLowerCase()) ||
           u.username.toLowerCase().contains(searchQuery.toLowerCase()) ||
@@ -35,8 +40,10 @@ class CommunityState {
 
 class CommunityNotifier extends StateNotifier<CommunityState> {
   final ApiClient _apiClient;
+  final String? _currentUserId;
 
-  CommunityNotifier(this._apiClient) : super(const CommunityState(users: [])) {
+  CommunityNotifier(this._apiClient, this._currentUserId)
+      : super(CommunityState(users: const [], currentUserId: _currentUserId)) {
     fetchUsers();
   }
 
@@ -46,6 +53,7 @@ class CommunityNotifier extends StateNotifier<CommunityState> {
       isLoading: true,
       searchQuery: state.searchQuery,
       selectedLanguageFilter: state.selectedLanguageFilter,
+      currentUserId: _currentUserId,
     );
 
     try {
@@ -64,14 +72,16 @@ class CommunityNotifier extends StateNotifier<CommunityState> {
         isLoading: false,
         searchQuery: state.searchQuery,
         selectedLanguageFilter: state.selectedLanguageFilter,
+        currentUserId: _currentUserId,
       );
     } catch (e) {
       state = CommunityState(
-        users: const [],
+        users: state.users,
         isLoading: false,
-        error: "Impossible de charger les membres réels.",
+        error: 'Impossible de charger la communauté.',
         searchQuery: state.searchQuery,
         selectedLanguageFilter: state.selectedLanguageFilter,
+        currentUserId: _currentUserId,
       );
     }
   }
@@ -82,6 +92,7 @@ class CommunityNotifier extends StateNotifier<CommunityState> {
       isLoading: state.isLoading,
       searchQuery: query,
       selectedLanguageFilter: state.selectedLanguageFilter,
+      currentUserId: _currentUserId,
     );
   }
 
@@ -91,12 +102,13 @@ class CommunityNotifier extends StateNotifier<CommunityState> {
       isLoading: state.isLoading,
       searchQuery: state.searchQuery,
       selectedLanguageFilter: lang,
+      currentUserId: _currentUserId,
     );
   }
 }
 
 final communityProvider = StateNotifierProvider<CommunityNotifier, CommunityState>((ref) {
   final apiClient = ref.watch(apiClientProvider);
-  return CommunityNotifier(apiClient);
+  final user = ref.watch(authProvider).user;
+  return CommunityNotifier(apiClient, user?.id);
 });
-

@@ -39,9 +39,6 @@ class PostsNotifier extends StateNotifier<PostsState> {
 
       final list = rawList.map((item) => PostModel.fromJson(item)).toList();
       state = PostsState(posts: list, isLoading: false);
-
-      // Sécurité client : traduction en arrière-plan immédiate si non déjà traduite
-      _autoTranslateAll(list);
     } catch (e) {
       state = PostsState(posts: state.posts, isLoading: false, error: 'Impossible de charger les posts');
     }
