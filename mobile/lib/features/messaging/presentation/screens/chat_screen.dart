@@ -72,36 +72,17 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           IconButton(
             icon: const Icon(Icons.call, color: AppColors.success),
             tooltip: 'Appel vocal',
-            onPressed: () => context.go('/call/room-${widget.conversationId}'),
+            onPressed: () => context.go('/call/${widget.conversationId}'),
           ),
           IconButton(
             icon: const Icon(Icons.videocam, color: AppColors.primary),
             tooltip: 'Appel vidéo',
-            onPressed: () => context.go('/call/room-${widget.conversationId}'),
+            onPressed: () => context.go('/call/${widget.conversationId}'),
           ),
         ],
       ),
       body: Column(
         children: [
-          // Bandeau d'information sur la traduction auto
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-            color: AppColors.primary.withOpacity(0.07),
-            child: Row(
-              children: [
-                const Icon(Icons.auto_awesome, size: 14, color: AppColors.primary),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    'Traduction automatique active — vous lisez les messages dans votre langue',
-                    style: const TextStyle(fontSize: 11, color: AppColors.primary, fontStyle: FontStyle.italic),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
           Expanded(
             child: state.isLoading && state.messages.isEmpty
                 ? const Center(child: CircularProgressIndicator())

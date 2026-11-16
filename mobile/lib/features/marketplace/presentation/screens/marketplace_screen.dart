@@ -355,7 +355,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                                   Expanded(
                                     child: OutlinedButton.icon(
                                       icon: const Icon(Icons.chat_outlined, size: 18, color: AppColors.primary),
-                                      label: const Text('Discuter (traduit auto)'),
+                                      label: const Text('Discuter'),
                                       style: OutlinedButton.styleFrom(
                                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                                       ),
