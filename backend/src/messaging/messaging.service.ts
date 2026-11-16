@@ -24,8 +24,10 @@ export class MessagingService {
    * Génère un UUID déterministe et unique pour une discussion 1-à-1 entre deux utilisateurs.
    * Peu importe qui initie (userA ou userB), l'ID généré est STRICTEMENT IDENTIQUE.
    */
-  getDirectConversationId(user1: string, user2: string): string {
-    const sorted = [user1.toLowerCase().trim(), user2.toLowerCase().trim()].sort();
+  getDirectConversationId(user1: any, user2: any): string {
+    const u1 = (typeof user1 === 'object' && user1?.id ? user1.id : String(user1 || '')).toLowerCase().trim();
+    const u2 = (typeof user2 === 'object' && user2?.id ? user2.id : String(user2 || '')).toLowerCase().trim();
+    const sorted = [u1, u2].sort();
     const hash = crypto.createHash('sha256').update(`direct:${sorted.join(':')}`).digest('hex');
     return `${hash.substring(0, 8)}-${hash.substring(8, 12)}-${hash.substring(12, 16)}-${hash.substring(16, 20)}-${hash.substring(20, 32)}`;
   }
@@ -36,8 +38,12 @@ export class MessagingService {
    */
   async resolveConversation(
     rawId: string,
-    currentUserId: string,
+    currentUserIdOrObj: any,
   ): Promise<{ conversationId: string; otherUser?: User }> {
+    const currentUserId = (typeof currentUserIdOrObj === 'object' && currentUserIdOrObj?.id
+      ? currentUserIdOrObj.id
+      : String(currentUserIdOrObj || '')).trim();
+
     if (!rawId) {
       return { conversationId: rawId };
     }
@@ -54,11 +60,17 @@ export class MessagingService {
     return { conversationId: rawId };
   }
 
-  async findAllConversations(userId: string): Promise<any[]> {
+  async findAllConversations(userIdOrObj: any): Promise<any[]> {
+    const userId = (typeof userIdOrObj === 'object' && userIdOrObj?.id
+      ? userIdOrObj.id
+      : String(userIdOrObj || '')).trim();
+
+    if (!userId) return [];
+
     // 1. Trouver toutes les conversations où l'utilisateur est listé
     const conversations = await this.conversationRepo
       .createQueryBuilder('c')
-      .where('c.participantIds LIKE :userPattern OR c.createdBy = :userId', {
+      .where('c.participantIds LIKE :userPattern OR CAST(c.createdBy AS text) = :userId', {
         userPattern: `%${userId}%`,
         userId,
       })
@@ -69,7 +81,7 @@ export class MessagingService {
     // 2. Trouver aussi les messages orphelins (anciennes conversations)
     const directMessages = await this.messageRepo
       .createQueryBuilder('m')
-      .where('m.senderId = :userId OR m.recipientId = :userId', { userId })
+      .where('CAST(m.senderId AS text) = :userId OR CAST(m.recipientId AS text) = :userId', { userId })
       .orderBy('m.createdAt', 'DESC')
       .take(100)
       .getMany();
@@ -165,7 +177,11 @@ export class MessagingService {
     return conv;
   }
 
-  async saveMessage(senderId: string, dto: SendMessageDto): Promise<Message> {
+  async saveMessage(senderIdOrObj: any, dto: SendMessageDto): Promise<Message> {
+    const senderId = (typeof senderIdOrObj === 'object' && senderIdOrObj?.id
+      ? senderIdOrObj.id
+      : String(senderIdOrObj || '')).trim();
+
     const { conversationId, otherUser } = await this.resolveConversation(
       dto.conversationId,
       senderId,
@@ -204,7 +220,13 @@ export class MessagingService {
     return this.messageRepo.save(message);
   }
 
-  async getMessages(rawId: string, currentUserId?: string, limit = 100): Promise<Message[]> {
+  async getMessages(rawId: string, currentUserIdOrObj?: any, limit = 100): Promise<Message[]> {
+    const currentUserId = currentUserIdOrObj
+      ? (typeof currentUserIdOrObj === 'object' && currentUserIdOrObj?.id
+          ? currentUserIdOrObj.id
+          : String(currentUserIdOrObj || '')).trim()
+      : undefined;
+
     let resolvedId = rawId;
     if (currentUserId) {
       const resolved = await this.resolveConversation(rawId, currentUserId);
@@ -226,14 +248,18 @@ export class MessagingService {
     return messages;
   }
 
-  async markAsRead(rawId: string, userId: string): Promise<void> {
+  async markAsRead(rawId: string, userIdOrObj: any): Promise<void> {
+    const userId = (typeof userIdOrObj === 'object' && userIdOrObj?.id
+      ? userIdOrObj.id
+      : String(userIdOrObj || '')).trim();
+
     const resolved = await this.resolveConversation(rawId, userId);
     await this.messageRepo
       .createQueryBuilder()
       .update(Message)
       .set({ isRead: true })
       .where(
-        '(conversation_id = :convId OR conversation_id = :rawId) AND sender_id != :userId',
+        '(conversation_id = :convId OR conversation_id = :rawId) AND CAST(sender_id AS text) != :userId',
         { convId: resolved.conversationId, rawId, userId },
       )
       .execute();
