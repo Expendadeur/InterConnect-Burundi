@@ -35,8 +35,16 @@ export class AuthController {
   @ApiOperation({ summary: 'Créer un nouveau compte utilisateur' })
   @ApiResponse({ status: 201, description: 'Compte créé avec succès' })
   @ApiResponse({ status: 409, description: 'Email ou username déjà utilisé' })
-  register(@Body() dto: RegisterDto) {
-    return this.authService.register(dto);
+  async register(@Body() dto: RegisterDto) {
+    const result = await this.authService.register(dto);
+    return {
+      user: result.user,
+      accessToken: result.tokens.accessToken,
+      refreshToken: result.tokens.refreshToken,
+      access_token: result.tokens.accessToken,
+      refresh_token: result.tokens.refreshToken,
+      tokens: result.tokens,
+    };
   }
 
   @Post('login')
@@ -45,8 +53,16 @@ export class AuthController {
   @ApiOperation({ summary: 'Connexion et obtention des tokens JWT' })
   @ApiResponse({ status: 200, description: 'Connexion réussie' })
   @ApiResponse({ status: 401, description: 'Identifiants invalides' })
-  login(@Body() dto: LoginDto) {
-    return this.authService.login(dto);
+  async login(@Body() dto: LoginDto) {
+    const result = await this.authService.login(dto);
+    return {
+      user: result.user,
+      accessToken: result.tokens.accessToken,
+      refreshToken: result.tokens.refreshToken,
+      access_token: result.tokens.accessToken,
+      refresh_token: result.tokens.refreshToken,
+      tokens: result.tokens,
+    };
   }
 
   @Post('logout')
@@ -66,7 +82,14 @@ export class AuthController {
   @ApiOperation({ summary: 'Rafraîchir les tokens avec le refresh token' })
   @ApiResponse({ status: 200, description: 'Tokens rafraîchis' })
   @ApiResponse({ status: 401, description: 'Refresh token invalide ou expiré' })
-  refresh(@CurrentUser() user: User) {
-    return this.authService.refreshTokens(user);
+  async refresh(@CurrentUser() user: User) {
+    const tokens = await this.authService.refreshTokens(user);
+    return {
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+      access_token: tokens.accessToken,
+      refresh_token: tokens.refreshToken,
+      tokens,
+    };
   }
 }

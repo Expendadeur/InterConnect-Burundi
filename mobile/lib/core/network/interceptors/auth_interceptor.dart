@@ -59,13 +59,17 @@ class AuthInterceptor extends Interceptor {
   Future<bool> _refreshToken() async {
     try {
       final refreshToken = await storage.read(key: 'refresh_token');
-      if (refreshToken == null) return false;
+      if (refreshToken == null || refreshToken.isEmpty) return false;
 
       final refreshDio = Dio(
         BaseOptions(
           baseUrl: '${EnvConfig.apiBaseUrl}/api/v1',
           connectTimeout: const Duration(seconds: 15),
           receiveTimeout: const Duration(seconds: 15),
+          headers: {
+            'Authorization': 'Bearer $refreshToken',
+            'Content-Type': 'application/json',
+          },
         ),
       );
 
@@ -74,11 +78,20 @@ class AuthInterceptor extends Interceptor {
         data: {'refresh_token': refreshToken},
       );
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 && response.data != null) {
         final data = response.data;
-        await storage.write(key: 'access_token', value: data['access_token']);
-        if (data['refresh_token'] != null) {
-          await storage.write(key: 'refresh_token', value: data['refresh_token']);
+        final newAccessToken = data['access_token'] ??
+            data['accessToken'] ??
+            (data['tokens'] != null ? (data['tokens']['accessToken'] ?? data['tokens']['access_token']) : null);
+        final newRefreshToken = data['refresh_token'] ??
+            data['refreshToken'] ??
+            (data['tokens'] != null ? (data['tokens']['refreshToken'] ?? data['tokens']['refresh_token']) : null);
+
+        if (newAccessToken != null) {
+          await storage.write(key: 'access_token', value: newAccessToken.toString());
+        }
+        if (newRefreshToken != null) {
+          await storage.write(key: 'refresh_token', value: newRefreshToken.toString());
         }
         return true;
       }

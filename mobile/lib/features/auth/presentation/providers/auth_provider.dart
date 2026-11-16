@@ -50,7 +50,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   Future<void> checkAuthStatus() async {
-    final token = await _storage.read(key: 'access_token');
+    String? token = await _storage.read(key: 'access_token');
+    if (token == null || token.isEmpty) {
+      token = await _storage.read(key: 'jwt_access_token');
+      if (token != null && token.isNotEmpty) {
+        await _storage.write(key: 'access_token', value: token);
+      }
+    }
     if (token == null || token.isEmpty) {
       state = AuthState.unauthenticated();
       return;
@@ -93,12 +99,24 @@ class AuthNotifier extends StateNotifier<AuthState> {
           // (démarrage à froid d'environ 1 minute) -> délai porté à 60 s.
           .timeout(const Duration(seconds: 60));
 
-      await _storage.write(
-          key: 'access_token', value: res.data['accessToken']);
-      await _storage.write(
-          key: 'refresh_token', value: res.data['refreshToken']);
+      final data = res.data;
+      final accessToken = data['access_token'] ??
+          data['accessToken'] ??
+          (data['tokens'] != null ? (data['tokens']['accessToken'] ?? data['tokens']['access_token']) : null);
+      final refreshToken = data['refresh_token'] ??
+          data['refreshToken'] ??
+          (data['tokens'] != null ? (data['tokens']['refreshToken'] ?? data['tokens']['refresh_token']) : null);
 
-      final user = UserModel.fromJson(res.data['user']);
+      if (accessToken != null) {
+        await _storage.write(key: 'access_token', value: accessToken.toString());
+        await _storage.write(key: 'jwt_access_token', value: accessToken.toString());
+      }
+      if (refreshToken != null) {
+        await _storage.write(key: 'refresh_token', value: refreshToken.toString());
+        await _storage.write(key: 'jwt_refresh_token', value: refreshToken.toString());
+      }
+
+      final user = UserModel.fromJson(data['user'] ?? data);
       state = AuthState.authenticated(user);
 
       // FCM exécuté en arrière-plan immédiat SANS AUCUN BLOCAGE
@@ -160,12 +178,24 @@ class AuthNotifier extends StateNotifier<AuthState> {
           // (démarrage à froid d'environ 1 minute) -> délai porté à 60 s.
           .timeout(const Duration(seconds: 60));
 
-      await _storage.write(
-          key: 'access_token', value: res.data['accessToken']);
-      await _storage.write(
-          key: 'refresh_token', value: res.data['refreshToken']);
+      final data = res.data;
+      final accessToken = data['access_token'] ??
+          data['accessToken'] ??
+          (data['tokens'] != null ? (data['tokens']['accessToken'] ?? data['tokens']['access_token']) : null);
+      final refreshToken = data['refresh_token'] ??
+          data['refreshToken'] ??
+          (data['tokens'] != null ? (data['tokens']['refreshToken'] ?? data['tokens']['refresh_token']) : null);
 
-      final user = UserModel.fromJson(res.data['user']);
+      if (accessToken != null) {
+        await _storage.write(key: 'access_token', value: accessToken.toString());
+        await _storage.write(key: 'jwt_access_token', value: accessToken.toString());
+      }
+      if (refreshToken != null) {
+        await _storage.write(key: 'refresh_token', value: refreshToken.toString());
+        await _storage.write(key: 'jwt_refresh_token', value: refreshToken.toString());
+      }
+
+      final user = UserModel.fromJson(data['user'] ?? data);
       state = AuthState.authenticated(user);
 
       // FCM en arrière-plan sans bloquer
