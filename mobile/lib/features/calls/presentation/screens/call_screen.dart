@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/network/api_client.dart';
+import '../../../../core/services/ringtone_service.dart';
 import '../../../auth/data/models/user_model.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 
@@ -83,6 +84,7 @@ class _CallScreenState extends ConsumerState<CallScreen> with SingleTickerProvid
   void _handleCallFlow() {
     // Si l'interlocuteur est hors ligne
     if (_interlocutor != null && !_interlocutor!.isOnline) {
+      RingtoneService.stop();
       setState(() {
         _isRinging = false;
         _isConnected = false;
@@ -92,17 +94,21 @@ class _CallScreenState extends ConsumerState<CallScreen> with SingleTickerProvid
       return;
     }
 
-    // Interlocuteur en ligne ou appel normal : sonnerie pendant 3.5 secondes puis connexion
+    // Déclencher la vraie sonnerie native du téléphone
+    RingtoneService.play();
+
+    // Interlocuteur en ligne ou appel normal : sonnerie pendant quelques secondes puis connexion
     _ringingTimer = Timer.periodic(const Duration(milliseconds: 1200), (timer) {
       if (!mounted || _isConnected) {
         timer.cancel();
+        RingtoneService.stop();
         return;
       }
       HapticFeedback.lightImpact();
-      SystemSound.play(SystemSoundType.click);
 
-      if (timer.tick >= 3) {
+      if (timer.tick >= 4) {
         timer.cancel();
+        RingtoneService.stop();
         if (mounted) {
           setState(() {
             _isRinging = false;
@@ -146,6 +152,7 @@ class _CallScreenState extends ConsumerState<CallScreen> with SingleTickerProvid
 
   @override
   void dispose() {
+    RingtoneService.stop();
     _pulseController.dispose();
     _ringingTimer?.cancel();
     _callTimer?.cancel();
@@ -440,6 +447,7 @@ class _CallScreenState extends ConsumerState<CallScreen> with SingleTickerProvid
                     children: [
                       GestureDetector(
                         onTap: () {
+                          RingtoneService.stop();
                           HapticFeedback.mediumImpact();
                           context.canPop() ? context.pop() : context.go('/feed');
                         },
