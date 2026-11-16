@@ -1,3 +1,5 @@
+import '../../domain/entities/user_entity.dart';
+
 class UserModel {
   final String id;
   final String email;
@@ -64,4 +66,21 @@ class UserModel {
   String get displayName => (firstName != null && firstName!.isNotEmpty)
       ? '$firstName ${lastName ?? ""}'.trim()
       : username;
+
+  UserEntity toEntity() {
+    return UserEntity(
+      id: id,
+      email: email,
+      username: username,
+      displayName: displayName,
+      avatarUrl: avatarUrl,
+      bio: bio,
+      country: country,
+      phone: phone,
+      nationalId: nationalId,
+      preferredLanguage: preferredLanguage,
+      isOnline: isOnline,
+      createdAt: DateTime.now(),
+    );
+  }
 }

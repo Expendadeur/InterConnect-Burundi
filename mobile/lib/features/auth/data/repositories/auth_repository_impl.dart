@@ -30,7 +30,7 @@ class AuthRepositoryImpl implements AuthRepository {
     await secureStorage.write(key: 'refresh_token', value: response.refreshToken);
 
     return (
-      user: response.user,
+      user: response.user.toEntity(),
       accessToken: response.accessToken,
       refreshToken: response.refreshToken,
     );
@@ -64,7 +64,7 @@ class AuthRepositoryImpl implements AuthRepository {
     await secureStorage.write(key: 'refresh_token', value: response.refreshToken);
 
     return (
-      user: response.user,
+      user: response.user.toEntity(),
       accessToken: response.accessToken,
       refreshToken: response.refreshToken,
     );
@@ -81,7 +81,8 @@ class AuthRepositoryImpl implements AuthRepository {
     final token = await secureStorage.read(key: 'access_token');
     if (token == null) return null;
     try {
-      return await remoteDatasource.getMe();
+      final userModel = await remoteDatasource.getMe();
+      return userModel.toEntity();
     } on UnauthorizedException {
       await secureStorage.delete(key: 'access_token');
       await secureStorage.delete(key: 'refresh_token');
