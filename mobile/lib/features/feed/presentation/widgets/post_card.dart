@@ -51,80 +51,88 @@ class _PostCardState extends State<PostCard> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Avatar avec indicateur EN LIGNE (Cercle vert)
-                Stack(
-                  children: [
-                    CircleAvatar(
-                      radius: 22,
-                      backgroundColor: AppColors.primaryLight.withOpacity(0.2),
-                      backgroundImage: _getAvatarImage(post.authorAvatar),
-                      child: post.authorAvatar == null
-                          ? Text(
-                              post.authorName.isNotEmpty
-                                  ? post.authorName[0].toUpperCase()
-                                  : 'U',
-                              style: const TextStyle(
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            )
-                          : null,
-                    ),
-                    if (post.authorIsOnline)
-                      Positioned(
-                        right: 0,
-                        bottom: 0,
-                        child: Container(
-                          width: 13,
-                          height: 13,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF1EB53A),
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
+                // Avatar cliquable pour ouvrir le profil
+                InkWell(
+                  onTap: () => context.go('/profile/${post.authorId}'),
+                  borderRadius: BorderRadius.circular(22),
+                  child: Stack(
+                    children: [
+                      CircleAvatar(
+                        radius: 22,
+                        backgroundColor: AppColors.primaryLight.withOpacity(0.2),
+                        backgroundImage: _getAvatarImage(post.authorAvatar),
+                        child: post.authorAvatar == null
+                            ? Text(
+                                post.authorName.isNotEmpty
+                                    ? post.authorName[0].toUpperCase()
+                                    : 'U',
+                                style: const TextStyle(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              )
+                            : null,
+                      ),
+                      if (post.authorIsOnline)
+                        Positioned(
+                          right: 0,
+                          bottom: 0,
+                          child: Container(
+                            width: 13,
+                            height: 13,
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF1EB53A),
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 2),
+                            ),
                           ),
                         ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
                 const SizedBox(width: 10),
 
-                // Auteur & Date
+                // Auteur & Date cliquable
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              post.authorName,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15,
-                                color: Colors.black87,
+                  child: InkWell(
+                    onTap: () => context.go('/profile/${post.authorId}'),
+                    borderRadius: BorderRadius.circular(8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                post.authorName,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                  color: Colors.black87,
+                                ),
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              overflow: TextOverflow.ellipsis,
                             ),
-                          ),
-                          const SizedBox(width: 4),
-                          const Icon(Icons.verified, size: 14, color: AppColors.primary),
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      Row(
-                        children: [
-                          Text(
-                            '${post.createdAt.hour.toString().padLeft(2, '0')}:${post.createdAt.minute.toString().padLeft(2, '0')}',
-                            style: TextStyle(color: Colors.grey.shade600, fontSize: 11),
-                          ),
-                          const SizedBox(width: 4),
-                          const Text('•', style: TextStyle(color: Colors.grey, fontSize: 11)),
-                          const SizedBox(width: 4),
-                          const Icon(Icons.public, size: 12, color: Colors.grey),
-                        ],
-                      ),
-                    ],
+                            const SizedBox(width: 4),
+                            const Icon(Icons.verified, size: 14, color: AppColors.primary),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        Row(
+                          children: [
+                            Text(
+                              '${post.createdAt.hour.toString().padLeft(2, '0')}:${post.createdAt.minute.toString().padLeft(2, '0')}',
+                              style: TextStyle(color: Colors.grey.shade600, fontSize: 11),
+                            ),
+                            const SizedBox(width: 4),
+                            const Text('•', style: TextStyle(color: Colors.grey, fontSize: 11)),
+                            const SizedBox(width: 4),
+                            const Icon(Icons.public, size: 12, color: Colors.grey),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ),
 

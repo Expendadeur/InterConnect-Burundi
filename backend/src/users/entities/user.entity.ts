@@ -54,7 +54,7 @@ export class User {
   lastName: string;
 
   @ApiProperty({ example: 'https://cdn.example.com/avatar.jpg' })
-  @Column({ name: 'avatar_url', nullable: true })
+  @Column({ name: 'avatar_url', type: 'text', nullable: true })
   avatarUrl: string;
 
   @ApiProperty({ example: 'Développeur passionné basé à Bujumbura.' })
