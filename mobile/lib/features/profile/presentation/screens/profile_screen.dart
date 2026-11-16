@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -19,6 +21,7 @@ class ProfileScreen extends ConsumerStatefulWidget {
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   UserModel? _otherUser;
   bool _isLoading = false;
+  bool _isUploadingPhoto = false;
   String? _error;
 
   @override
@@ -68,6 +71,54 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           _error = 'Impossible de charger le profil de cet utilisateur.';
           _isLoading = false;
         });
+      }
+    }
+  }
+
+  Future<void> _pickAndUploadPhoto() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 512,
+      maxHeight: 512,
+      imageQuality: 80,
+    );
+
+    if (picked != null) {
+      setState(() => _isUploadingPhoto = true);
+      try {
+        final bytes = await File(picked.path).readAsBytes();
+        final base64Photo = 'data:image/jpeg;base64,${base64Encode(bytes)}';
+        final apiClient = ref.read(apiClientProvider);
+        await apiClient.dio.patch('/users/me', data: {'avatarUrl': base64Photo});
+        await ref.read(authProvider.notifier).checkAuthStatus();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.white),
+                  SizedBox(width: 8),
+                  Text('Photo de profil mise à jour avec succès !'),
+                ],
+              ),
+              backgroundColor: AppColors.success,
+            ),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Impossible de mettre à jour la photo.'),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() => _isUploadingPhoto = false);
+        }
       }
     }
   }
@@ -186,19 +237,37 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     radius: 54,
                     backgroundColor: AppColors.primary.withOpacity(0.15),
                     backgroundImage: profileImage,
-                    child: profileImage == null
-                        ? Text(
-                            initials,
-                            style: const TextStyle(
-                              fontSize: 40,
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          )
-                        : null,
+                    child: _isUploadingPhoto
+                        ? const CircularProgressIndicator(color: AppColors.primary)
+                        : (profileImage == null
+                            ? Text(
+                                initials,
+                                style: const TextStyle(
+                                  fontSize: 40,
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              )
+                            : null),
                   ),
-                  // Indicateur En ligne réel
-                  if (user.isOnline)
+                  if (isOwnProfile)
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: GestureDetector(
+                        onTap: _pickAndUploadPhoto,
+                        child: Container(
+                          padding: const EdgeInsets.all(7),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 2.5),
+                          ),
+                          child: const Icon(Icons.camera_alt, color: Colors.white, size: 18),
+                        ),
+                      ),
+                    )
+                  else if (user.isOnline)
                     Positioned(
                       bottom: 2,
                       right: 2,
@@ -224,7 +293,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               '@${user.username}',
               style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
             ),
-            if (user.isOnline) ...[
+            if (isOwnProfile) ...[
+              const SizedBox(height: 6),
+              TextButton.icon(
+                onPressed: _pickAndUploadPhoto,
+                icon: const Icon(Icons.photo_camera, size: 16),
+                label: const Text('Changer ma photo de profil'),
+              ),
+            ],
+            if (user.isOnline && !isOwnProfile) ...[
               const SizedBox(height: 6),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,

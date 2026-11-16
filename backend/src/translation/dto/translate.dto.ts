@@ -8,14 +8,23 @@ export class TranslateDto {
   @MaxLength(5000)
   text: string;
 
-  @ApiProperty({ example: 'fr' })
+  @ApiPropertyOptional({ example: 'fr' })
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  targetLanguage: string;
+  targetLanguage?: string;
+
+  @ApiPropertyOptional({ example: 'fr' })
+  @IsOptional()
+  @IsString()
+  target_language?: string;
 
   @ApiPropertyOptional({ example: 'rn' })
   @IsOptional()
   @IsString()
   sourceLanguage?: string;
-}
 
+  @ApiPropertyOptional({ example: 'rn' })
+  @IsOptional()
+  @IsString()
+  source_language?: string;
+}

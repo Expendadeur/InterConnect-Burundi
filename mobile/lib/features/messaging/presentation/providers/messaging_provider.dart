@@ -49,10 +49,10 @@ class MessagingNotifier extends StateNotifier<MessagingState> {
     try {
       final res = await _apiClient.dio.post('/translation/translate', data: {
         'text': msg.content,
-        'source_language': msg.originalLanguage,
-        'target_language': _userLanguage,
+        'targetLanguage': _userLanguage,
+        'sourceLanguage': msg.originalLanguage,
       });
-      msg.translatedContent = res.data['translated_text'] ?? res.data['translatedText'];
+      msg.translatedContent = res.data['translatedText'] ?? res.data['translated_text'];
       state = MessagingState(messages: [...state.messages], isLoading: false);
     } catch (_) {}
   }

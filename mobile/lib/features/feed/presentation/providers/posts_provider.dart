@@ -61,8 +61,8 @@ class PostsNotifier extends StateNotifier<PostsState> {
     try {
       final res = await _apiClient.dio.post('/translation/translate', data: {
         'text': post.content,
-        'source_language': post.originalLanguage,
-        'target_language': _userLanguage,
+        'targetLanguage': _userLanguage,
+        'sourceLanguage': post.originalLanguage,
       });
 
       final translated = res.data['translatedText'] ?? res.data['translated_text'];

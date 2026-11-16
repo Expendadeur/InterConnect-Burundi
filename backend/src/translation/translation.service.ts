@@ -7,6 +7,7 @@ import { TranslateDto } from './dto/translate.dto';
 export interface TranslationResult {
   originalText: string;
   translatedText: string;
+  translated_text?: string;
   sourceLanguage: string;
   targetLanguage: string;
   provider: string;
@@ -27,8 +28,8 @@ export class TranslationService {
 
   async translate(dto: TranslateDto): Promise<TranslationResult> {
     const text = dto.text?.trim() || '';
-    const targetLang = (dto.targetLanguage || 'fr').toLowerCase();
-    const sourceLang = (dto.sourceLanguage || 'auto').toLowerCase();
+    const targetLang = (dto.targetLanguage || dto.target_language || 'fr').toLowerCase();
+    const sourceLang = (dto.sourceLanguage || dto.source_language || 'auto').toLowerCase();
 
     if (!text) {
       return {

@@ -38,7 +38,7 @@ export class UpdateProfileDto {
 
   @ApiPropertyOptional({ example: 'https://cdn.example.com/avatar.jpg' })
   @IsOptional()
-  @IsUrl()
+  @IsString()
   avatarUrl?: string;
 
   @ApiPropertyOptional({ example: 'fr', description: 'Code langue ISO 639-1' })

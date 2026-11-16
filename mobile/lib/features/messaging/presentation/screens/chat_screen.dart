@@ -1,7 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/network/api_client.dart';
+import '../../../auth/data/models/user_model.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../providers/messaging_provider.dart';
 
@@ -17,11 +20,28 @@ class ChatScreen extends ConsumerStatefulWidget {
 class _ChatScreenState extends ConsumerState<ChatScreen> {
   final _messageController = TextEditingController();
   final _scrollController = ScrollController();
+  UserModel? _interlocutor;
 
   @override
   void initState() {
     super.initState();
     ref.read(messagingProvider.notifier).loadMessages(widget.conversationId);
+    _loadInterlocutor();
+  }
+
+  Future<void> _loadInterlocutor() async {
+    // Si l'ID est un UUID utilisateur, charge le profil complet
+    if (!widget.conversationId.startsWith('conv-')) {
+      try {
+        final apiClient = ref.read(apiClientProvider);
+        final res = await apiClient.dio.get('/users/${widget.conversationId}');
+        if (mounted) {
+          setState(() {
+            _interlocutor = UserModel.fromJson(res.data);
+          });
+        }
+      } catch (_) {}
+    }
   }
 
   @override
@@ -53,20 +73,122 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     }
   }
 
+  ImageProvider? _getProfileImage(String? avatarUrl) {
+    if (avatarUrl == null || avatarUrl.isEmpty) return null;
+    if (avatarUrl.startsWith('data:image')) {
+      try {
+        final commaIdx = avatarUrl.indexOf(',');
+        final base64Str = commaIdx != -1 ? avatarUrl.substring(commaIdx + 1) : avatarUrl;
+        return MemoryImage(base64Decode(base64Str));
+      } catch (_) {
+        return null;
+      }
+    }
+    return NetworkImage(avatarUrl);
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(messagingProvider);
     final user = ref.watch(authProvider).user;
 
+    final displayName = _interlocutor?.displayName ??
+        (widget.conversationId.startsWith('conv-') ? 'Discussion' : 'Discussion');
+    final profileImage = _getProfileImage(_interlocutor?.avatarUrl);
+    final initials = displayName.isNotEmpty ? displayName[0].toUpperCase() : 'U';
+    final isOnline = _interlocutor?.isOnline ?? false;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          widget.conversationId.startsWith('conv-') ? 'Discussion' : widget.conversationId,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
+        titleSpacing: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go('/messages'),
+        ),
+        title: InkWell(
+          onTap: () {
+            if (_interlocutor != null) {
+              context.go('/profile/${_interlocutor!.id}');
+            }
+          },
+          child: Row(
+            children: [
+              // Avatar avec indicateur en ligne
+              Stack(
+                children: [
+                  CircleAvatar(
+                    radius: 20,
+                    backgroundColor: AppColors.primary.withOpacity(0.15),
+                    backgroundImage: profileImage,
+                    child: profileImage == null
+                        ? Text(
+                            initials,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.primary,
+                            ),
+                          )
+                        : null,
+                  ),
+                  if (isOnline)
+                    Positioned(
+                      right: 0,
+                      bottom: 0,
+                      child: Container(
+                        width: 11,
+                        height: 11,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1EB53A),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(width: 10),
+              // Nom et statut en ligne
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      displayName,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Row(
+                      children: [
+                        if (isOnline)
+                          Container(
+                            width: 6,
+                            height: 6,
+                            margin: const EdgeInsets.only(right: 4),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF1EB53A),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        Text(
+                          isOnline ? 'En ligne' : 'Hors ligne',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: isOnline ? const Color(0xFF1EB53A) : Colors.grey,
+                            fontWeight: isOnline ? FontWeight.w600 : FontWeight.normal,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
         actions: [
           IconButton(
@@ -98,12 +220,17 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
                         child: Container(
                           margin: const EdgeInsets.only(bottom: 12),
-                          padding: const EdgeInsets.all(12),
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                           constraints: BoxConstraints(
                               maxWidth: MediaQuery.of(context).size.width * 0.75),
                           decoration: BoxDecoration(
                             color: isMe ? AppColors.primary : Colors.white,
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: BorderRadius.only(
+                              topLeft: const Radius.circular(16),
+                              topRight: const Radius.circular(16),
+                              bottomLeft: Radius.circular(isMe ? 16 : 4),
+                              bottomRight: Radius.circular(isMe ? 4 : 16),
+                            ),
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.black.withOpacity(0.06),
@@ -113,26 +240,40 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                             ],
                           ),
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              // Affiche la traduction si disponible (priorité)
-                              // sinon le texte original
-                              // Affiche uniquement la traduction (si dispo) ou le texte original
-                              // L'expéditeur voit son propre message, le destinataire voit sa langue
-                              Text(
-                                msg.translatedContent ?? msg.content,
-                                style: TextStyle(
-                                  color: isMe ? Colors.white : AppColors.onSurface,
-                                  fontSize: 15,
+                              // Texte du message dans la langue de l'utilisateur
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  msg.translatedContent ?? msg.content,
+                                  style: TextStyle(
+                                    color: isMe ? Colors.white : AppColors.onSurface,
+                                    fontSize: 15,
+                                  ),
                                 ),
                               ),
                               const SizedBox(height: 4),
-                              Text(
-                                '${msg.createdAt.hour}:${msg.createdAt.minute.toString().padLeft(2, '0')}',
-                                style: TextStyle(
-                                  color: isMe ? Colors.white60 : AppColors.textSecondary,
-                                  fontSize: 10,
-                                ),
+                              // Heure + Coche de statut (simple ✓ pour envoyé, double ✓✓ bleu pour lu)
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    '${msg.createdAt.hour}:${msg.createdAt.minute.toString().padLeft(2, '0')}',
+                                    style: TextStyle(
+                                      color: isMe ? Colors.white70 : AppColors.textSecondary,
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                  if (isMe) ...[
+                                    const SizedBox(width: 4),
+                                    Icon(
+                                      msg.isRead ? Icons.done_all : Icons.done,
+                                      size: 15,
+                                      color: msg.isRead ? const Color(0xFF64B5F6) : Colors.white70,
+                                    ),
+                                  ],
+                                ],
                               ),
                             ],
                           ),
@@ -144,7 +285,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
           // Zone de saisie
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             color: Colors.white,
             child: Row(
               children: [
@@ -153,9 +294,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     controller: _messageController,
                     textCapitalization: TextCapitalization.sentences,
                     decoration: InputDecoration(
-                      hintText: 'Message (votre langue)...',
+                      hintText: 'Écrire un message...',
                       border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(24)),
+                        borderRadius: BorderRadius.circular(24),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
                       contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 10),
                     ),
